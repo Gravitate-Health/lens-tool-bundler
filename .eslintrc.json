@@ -1,6 +1,17 @@
 {
-  "extends": ["oclif", "oclif-typescript", "prettier"],
+  "extends": ["oclif", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint"],
+  "env": {
+    "node": true,
+    "es6": true
+  },
   "rules": {
-    "perfectionist/sort-classes": "off"
+    "perfectionist/sort-classes": "off",
+    "unicorn/prefer-module": "warn",
+    "no-undef": "warn"
   }
 }
