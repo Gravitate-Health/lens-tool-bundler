@@ -1,20 +1,20 @@
 {
-  "name": "@gravitate-health/fhir-lens-bundler",
+  "name": "@gravitate-health/lens-tool-bundler",
   "version": "0.2.1",
   "description": "Tool to bundle from raw lens to a FHIR Standard Lens",
   "keywords": [
     "oclif"
   ],
-  "homepage": "https://github.com/Gravitate-Health/fhir-lens-bundler",
-  "bugs": "https://github.com/Gravitate-Health/fhir-lens-bundler/issues",
-  "repository": "Gravitate-Health/fhir-lens-bundler",
+  "homepage": "https://github.com/Gravitate-Health/lens-tool-bundler",
+  "bugs": "https://github.com/Gravitate-Health/lens-tool-bundler/issues",
+  "repository": "Gravitate-Health/lens-tool-bundler",
   "license": "Apache License 2.0",
   "author": "Universidad Politécnica de Madrid (UPM)",
   "type": "module",
   "exports": "./lib/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "fhir-lens-bundler": "./bin/run.js"
+    "lens-tool-bundler": "./bin/run.js"
   },
   "files": [
     "/bin",
@@ -32,9 +32,9 @@
     "version": "oclif readme && git add README.md"
   },
   "oclif": {
-    "bin": "fhir-lens-bundler",
+    "bin": "lens-tool-bundler",
     "commands": "./dist/commands",
-    "dirname": "fhir-lens-bundler",
+    "dirname": "lens-tool-bundler",
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"

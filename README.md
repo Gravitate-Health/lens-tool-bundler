@@ -1,4 +1,4 @@
-FHIR Lens Bundler
+Lens Tool Bundler
 =================
 
 This is a CLI tool to bundle FHIR lenses into a single file.
@@ -10,34 +10,34 @@ This is a CLI tool to bundle FHIR lenses into a single file.
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g @gravitate-health/fhir-lens-bundler
-$ fhir-lens-bundler COMMAND
+$ npm install -g @gravitate-health/lens-tool-bundler
+$ lens-tool-bundler COMMAND
 running command...
-$ fhir-lens-bundler (--version)
-@gravitate-health/fhir-lens-bundler/0.1.2 linux-x64 node-v20.10.0
-$ fhir-lens-bundler --help [COMMAND]
+$ lens-tool-bundler (--version)
+@gravitate-health/lens-tool-bundler/0.2.1 linux-x64 node-v20.10.0
+$ lens-tool-bundler --help [COMMAND]
 USAGE
-  $ fhir-lens-bundler COMMAND
+  $ lens-tool-bundler COMMAND
 ...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`fhir-lens-bundler batch-bundle [DIRECTORY]`](#fhir-lens-bundler-batch-bundle-directory)
-* [`fhir-lens-bundler batch-upload [DIRECTORY]`](#fhir-lens-bundler-batch-upload-directory)
-* [`fhir-lens-bundler bundle FILE`](#fhir-lens-bundler-bundle-file)
-* [`fhir-lens-bundler lsenhancejs [DIRECTORY]`](#fhir-lens-bundler-lsenhancejs-directory)
-* [`fhir-lens-bundler lslens [DIRECTORY]`](#fhir-lens-bundler-lslens-directory)
-* [`fhir-lens-bundler new NAME`](#fhir-lens-bundler-new-name)
-* [`fhir-lens-bundler upload FILE`](#fhir-lens-bundler-upload-file)
+* [`lens-tool-bundler batch-bundle [DIRECTORY]`](#lens-tool-bundler-batch-bundle-directory)
+* [`lens-tool-bundler batch-upload [DIRECTORY]`](#lens-tool-bundler-batch-upload-directory)
+* [`lens-tool-bundler bundle FILE`](#lens-tool-bundler-bundle-file)
+* [`lens-tool-bundler lsenhancejs [DIRECTORY]`](#lens-tool-bundler-lsenhancejs-directory)
+* [`lens-tool-bundler lslens [DIRECTORY]`](#lens-tool-bundler-lslens-directory)
+* [`lens-tool-bundler new NAME`](#lens-tool-bundler-new-name)
+* [`lens-tool-bundler upload FILE`](#lens-tool-bundler-upload-file)
 
-## `fhir-lens-bundler bundle FILE`
+## `lens-tool-bundler bundle FILE`
 
 Bundles raw lenses into a FHIR compliant single file.
 
 ```
 USAGE
-  $ fhir-lens-bundler bundle FILE -n <value> [-d] [-u]
+  $ lens-tool-bundler bundle FILE -n <value> [-d] [-u]
 
 ARGUMENTS
   FILE  file to read
@@ -55,20 +55,20 @@ DESCRIPTION
   Use -u flag to update an existing bundle file with new content and updated date.
 
 EXAMPLES
-  $ fhir-lens-bundler bundle mylens.js -n MyLens
-  $ fhir-lens-bundler bundle mylens.js -n MyLens -d
-  $ fhir-lens-bundler bundle mylens.js -n MyLens -u
+  $ lens-tool-bundler bundle mylens.js -n MyLens
+  $ lens-tool-bundler bundle mylens.js -n MyLens -d
+  $ lens-tool-bundler bundle mylens.js -n MyLens -u
 ```
 
-_See code: [src/commands/bundle.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/bundle.ts)_
+_See code: [src/commands/bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/bundle.ts)_
 
-## `fhir-lens-bundler batch-bundle [DIRECTORY]`
+## `lens-tool-bundler batch-bundle [DIRECTORY]`
 
 Batch process and bundle multiple lenses in a directory.
 
 ```
 USAGE
-  $ fhir-lens-bundler batch-bundle [DIRECTORY] [-s] [-d] [-e <value>] [-f]
+  $ lens-tool-bundler batch-bundle [DIRECTORY] [-s] [-d] [-e <value>] [-f]
 
 ARGUMENTS
   DIRECTORY  [default: .] directory containing lenses to bundle
@@ -96,24 +96,24 @@ DESCRIPTION
   of whether their content is already up to date. This overrides --skip-valid.
 
 EXAMPLES
-  $ fhir-lens-bundler batch-bundle
-  $ fhir-lens-bundler batch-bundle ./lenses
-  $ fhir-lens-bundler batch-bundle ./lenses --skip-valid
-  $ fhir-lens-bundler batch-bundle ./lenses --force
-  $ fhir-lens-bundler batch-bundle ./lenses --skip-date
-  $ fhir-lens-bundler batch-bundle ./lenses --exclude "test.*"
-  $ fhir-lens-bundler batch-bundle ./lenses -s -d -e "draft.*"
+  $ lens-tool-bundler batch-bundle
+  $ lens-tool-bundler batch-bundle ./lenses
+  $ lens-tool-bundler batch-bundle ./lenses --skip-valid
+  $ lens-tool-bundler batch-bundle ./lenses --force
+  $ lens-tool-bundler batch-bundle ./lenses --skip-date
+  $ lens-tool-bundler batch-bundle ./lenses --exclude "test.*"
+  $ lens-tool-bundler batch-bundle ./lenses -s -d -e "draft.*"
 ```
 
-_See code: [src/commands/batch-bundle.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/batch-bundle.ts)_
+_See code: [src/commands/batch-bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/batch-bundle.ts)_
 
-## `fhir-lens-bundler batch-upload [DIRECTORY]`
+## `lens-tool-bundler batch-upload [DIRECTORY]`
 
 Batch process, bundle, and upload multiple lenses to a FHIR server.
 
 ```
 USAGE
-  $ fhir-lens-bundler batch-upload [DIRECTORY] -d <value> [-s] [-t] [-e <value>] [-f]
+  $ lens-tool-bundler batch-upload [DIRECTORY] -d <value> [-s] [-t] [-e <value>] [-f]
 
 ARGUMENTS
   DIRECTORY  [default: .] directory containing lenses to upload
@@ -140,23 +140,23 @@ DESCRIPTION
   logic as the upload command.
 
 EXAMPLES
-  $ fhir-lens-bundler batch-upload -d https://fosps.gravitatehealth.eu/epi/api/fhir
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --skip-valid
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --force
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir -s -t -e "draft.*"
+  $ lens-tool-bundler batch-upload -d https://fosps.gravitatehealth.eu/epi/api/fhir
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --skip-valid
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --force
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir -s -t -e "draft.*"
 ```
 
-_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/batch-upload.ts)_
+_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/batch-upload.ts)_
 
-## `fhir-lens-bundler bundle FILE`
+## `lens-tool-bundler bundle FILE`
 
 Bundles raw JavaScript with metadata into a FHIR-compliant JSON file.
 
 ```
 USAGE
-  $ fhir-lens-bundler batch-upload [DIRECTORY] -d <value> [-s] [-t] [-e <value>] [-f]
+  $ lens-tool-bundler batch-upload [DIRECTORY] -d <value> [-s] [-t] [-e <value>] [-f]
 
 ARGUMENTS
   DIRECTORY  [default: .] directory containing lenses to upload
@@ -183,23 +183,23 @@ DESCRIPTION
   logic as the upload command.
 
 EXAMPLES
-  $ fhir-lens-bundler batch-upload -d https://fosps.gravitatehealth.eu/epi/api/fhir
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --skip-valid
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --force
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"
-  $ fhir-lens-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir -s -t -e "draft.*"
+  $ lens-tool-bundler batch-upload -d https://fosps.gravitatehealth.eu/epi/api/fhir
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --skip-valid
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --force
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"
+  $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir -s -t -e "draft.*"
 ```
 
-_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/batch-upload.ts)_
+_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/batch-upload.ts)_
 
-## `fhir-lens-bundler lsenhancejs [DIRECTORY]`
+## `lens-tool-bundler lsenhancejs [DIRECTORY]`
 
 List valid enhance JavaScript files in a directory (similar to ls).
 
 ```
 USAGE
-  $ fhir-lens-bundler lsenhancejs [DIRECTORY] [-d] [-j]
+  $ lens-tool-bundler lsenhancejs [DIRECTORY] [-d] [-j]
 
 ARGUMENTS
   DIRECTORY  [default: .] directory to search for enhance JS files
@@ -219,21 +219,21 @@ DESCRIPTION
   Default output shows just file paths, making it ideal for piping to xargs.
 
 EXAMPLES
-  $ fhir-lens-bundler lsenhancejs
-  $ fhir-lens-bundler lsenhancejs ./lenses
-  $ fhir-lens-bundler lsenhancejs -d
-  $ fhir-lens-bundler lsenhancejs ./lenses | xargs -I {} echo "Processing: {}"
+  $ lens-tool-bundler lsenhancejs
+  $ lens-tool-bundler lsenhancejs ./lenses
+  $ lens-tool-bundler lsenhancejs -d
+  $ lens-tool-bundler lsenhancejs ./lenses | xargs -I {} echo "Processing: {}"
 ```
 
-_See code: [src/commands/lsenhancejs.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/lsenhancejs.ts)_
+_See code: [src/commands/lsenhancejs.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/lsenhancejs.ts)_
 
-## `fhir-lens-bundler lslens [DIRECTORY]`
+## `lens-tool-bundler lslens [DIRECTORY]`
 
 List valid FHIR lenses in a directory (similar to ls).
 
 ```
 USAGE
-  $ fhir-lens-bundler lslens [DIRECTORY] [-a] [-v] [-j]
+  $ lens-tool-bundler lslens [DIRECTORY] [-a] [-v] [-j]
 
 ARGUMENTS
   DIRECTORY  [default: .] directory to search for lenses
@@ -254,22 +254,22 @@ DESCRIPTION
   Default output shows just file paths, making it ideal for piping to xargs.
 
 EXAMPLES
-  $ fhir-lens-bundler lslens
-  $ fhir-lens-bundler lslens ./lenses
-  $ fhir-lens-bundler lslens -a
-  $ fhir-lens-bundler lslens -v
-  $ fhir-lens-bundler lslens ./lenses | xargs -I {} echo "Processing: {}"
+  $ lens-tool-bundler lslens
+  $ lens-tool-bundler lslens ./lenses
+  $ lens-tool-bundler lslens -a
+  $ lens-tool-bundler lslens -v
+  $ lens-tool-bundler lslens ./lenses | xargs -I {} echo "Processing: {}"
 ```
 
-_See code: [src/commands/lslens.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/lslens.ts)_
+_See code: [src/commands/lslens.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/lslens.ts)_
 
-## `fhir-lens-bundler new NAME`
+## `lens-tool-bundler new NAME`
 
 Creates a new lens with JavaScript file and FHIR bundle.
 
 ```
 USAGE
-  $ fhir-lens-bundler new NAME [-d] [-f]
+  $ lens-tool-bundler new NAME [-d] [-f]
 
 ARGUMENTS
   NAME  name of the lens to create
@@ -293,21 +293,21 @@ DESCRIPTION
   repository at runtime, ensuring you always get the latest version.
 
 EXAMPLES
-  $ fhir-lens-bundler new MyLens
-  $ fhir-lens-bundler new MyLens -d
-  $ fhir-lens-bundler new MyLens -d -f
+  $ lens-tool-bundler new MyLens
+  $ lens-tool-bundler new MyLens -d
+  $ lens-tool-bundler new MyLens -d -f
 ```
 
-_See code: [src/commands/new.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/new.ts)_
+_See code: [src/commands/new.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/new.ts)_
 
 
-## `fhir-lens-bundler upload FILE`
+## `lens-tool-bundler upload FILE`
 
 upload file (json format) to a valid FHIR server.
 
 ```
 USAGE
-  $ fhir-lens-bundler upload FILE -d <value>
+  $ lens-tool-bundler upload FILE -d <value>
 
 ARGUMENTS
   FILE  file to read
@@ -319,7 +319,7 @@ DESCRIPTION
   upload file (json format) to a valid FHIR server.
 
 EXAMPLES
-  $ fhir-lens-bundler upload
+  $ lens-tool-bundler upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/Gravitate-Health/fhir-lens-bundler/blob/v0.1.2/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.2.1/src/commands/upload.ts)_
