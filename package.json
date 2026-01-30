@@ -7,14 +7,17 @@
   ],
   "homepage": "https://github.com/Gravitate-Health/lens-tool-bundler",
   "bugs": "https://github.com/Gravitate-Health/lens-tool-bundler/issues",
-  "repository": "Gravitate-Health/lens-tool-bundler",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gravitate-Health/lens-tool-bundler.git"
+  },
   "license": "Apache License 2.0",
   "author": "Universidad Politécnica de Madrid (UPM)",
   "type": "module",
   "exports": "./lib/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "lens-tool-bundler": "./bin/run.js"
+    "lens-tool-bundler": "bin/run.js"
   },
   "files": [
     "/bin",
@@ -24,11 +27,11 @@
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts",
-    "prepack": "pnpm run build && oclif manifest",
+    "prepack": "npm run build && oclif manifest",
     "postpack": "shx rm -f oclif.manifest.json",
-    "prepare": "pnpm run build",
+    "prepare": "npm run build",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
-    "posttest": "pnpm run lint",
+    "posttest": "npm run lint",
     "version": "oclif readme && git add README.md"
   },
   "oclif": {
