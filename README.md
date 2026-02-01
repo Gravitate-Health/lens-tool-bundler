@@ -356,22 +356,39 @@ Creates a new lens with JavaScript file and FHIR bundle.
 
 ```
 USAGE
-  $ lens-tool-bundler new NAME [-d] [-f]
+  $ lens-tool-bundler new NAME [-d] [-f] [-t] [--fork]
 
 ARGUMENTS
   NAME  name of the lens to create
 
 FLAGS
-  -d, --default  use default values for the bundle
-  -f, --force    overwrite existing files if they exist
+  -d, --default   use default values for the bundle
+  -f, --force     overwrite existing files if they exist
+  -t, --template  clone the full lens-template repository with all features
+  --fork          fork the template repository using GitHub CLI (requires gh CLI)
 
 DESCRIPTION
   Creates a new lens with JavaScript file and FHIR bundle.
+  
+  Two modes:
+  1. Simple mode (default): Fetches single lens JavaScript file
+  2. Template mode (--template): Clones full repository with:
+     • package.json configuration
+     • Testing framework
+     • GitHub Actions workflows
+     • README template
+     • FHIR Library bundle synced from package.json
+  
+  Use --fork with --template to fork the repository to your GitHub account first.
 
 EXAMPLES
   $ lens-tool-bundler new MyLens
 
   $ lens-tool-bundler new MyLens -d
+
+  $ lens-tool-bundler new MyLens --template
+
+  $ lens-tool-bundler new MyLens --template --fork
 ```
 
 _See code: [src/commands/new.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.3/src/commands/new.ts)_

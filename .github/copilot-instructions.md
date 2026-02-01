@@ -67,15 +67,39 @@ Commands like [batch-bundle.ts](../src/commands/batch-bundle.ts) use these flags
 - `--exclude (-e)`: Regex to exclude files by filename
 
 ### FHIR Resource Construction
-[LensFhirResource](../src/models/lens-fhir-resource.ts) has two factory methods:
+[LensFhirResource](../src/models/lens-fhir-resource.ts) has three factory methods:
 - `defaultValues(name, lens)`: Minimal FHIR Library with placeholder metadata
 - `interactiveValues(name, desc, purpose, usage, lens)`: User-provided metadata
+- `fromPackageJson(packageJson, lens)`: Extract metadata from package.json (name, version, description, author, license, purpose, usage, copyright)
 
 Always creates:
 - `resourceType: "Library"`
 - `id`: lowercased name with hyphens
 - `date`: ISO 8601 timestamp
 - `content[0].data`: base64-encoded JS
+
+### New Lens Creation
+[new.ts](../src/commands/new.ts) has two modes:
+
+**Simple Mode (default)**: Fetches single JS file from raw.githubusercontent.com
+- Creates `<name>.js` and `<name>.json` in current directory
+- Uses default or interactive metadata prompts
+
+**Template Mode (`--template`)**: Clones full lens-template repository
+- Clones from `https://github.com/Gravitate-Health/lens-template.git`
+- Creates directory with lens name (lowercased, hyphenated), or uses current directory if empty
+- Updates `package.json` with lens metadata (interactive or default)
+- Renames `my-lens.js` → `<name>.js` and `my-lens.json` → `<name>.json`
+- Deletes template `README.md` and renames `LENS_README_TEMPLATE.md` → `README.md`
+- Syncs metadata from package.json to FHIR Library using `fromPackageJson()`
+- Removes `.git` directory to start fresh
+- Includes testing framework, GitHub Actions workflows, and development setup
+
+**Fork Mode (`--template --fork`)**: Like template mode but forks repo first
+- Requires GitHub CLI (`gh`) to be installed
+- Forks `Gravitate-Health/lens-template` to user's GitHub account with the new lens name
+- Clones from user's fork instead of upstream
+- Allows user to maintain their own template customizations
 
 ### Upload Strategy
 [upload-controller.ts](../src/controllers/upload-controller.ts):
@@ -168,8 +192,14 @@ Commands use `runComprehensiveLensTests` which returns `Promise<ComprehensiveRes
 ## Useful Commands for Development
 
 ```bash
-# Create new lens from template
+# Create new lens from template (simple mode - fetches single JS file)
 lens-tool-bundler new MyLens -d
+
+# Create new lens from full template repository
+lens-tool-bundler new MyLens --template -d
+
+# Create new lens by forking the template repo first (requires gh CLI)
+lens-tool-bundler new MyLens --template --fork
 
 # Bundle single lens interactively
 lens-tool-bundler bundle enhance.js -n "My Lens"
