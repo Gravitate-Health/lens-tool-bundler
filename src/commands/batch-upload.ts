@@ -220,12 +220,25 @@ export default class BatchUpload extends Command {
             const errorText = await response.text();
             result.errors++;
             result.processed++;
+            
+            // Parse error details if available
+            let errorDetails = errorText;
+            try {
+              const errorJson = JSON.parse(errorText);
+              if (errorJson.issue) {
+                errorDetails = errorJson.issue.map((i: any) => i.diagnostics || i.details?.text).join('; ');
+              }
+            } catch {
+              // Keep original text if not JSON
+            }
+            
             result.details.push({
               action: 'error',
               file: lens.path,
-              reason: `HTTP ${response.status}: ${errorText}`
+              reason: `HTTP ${response.status}: ${errorDetails}`
             });
             this.log(`✗ Error uploading ${fileName}: HTTP ${response.status}`);
+            this.log(`   Details: ${errorDetails.substring(0, 200)}${errorDetails.length > 200 ? '...' : ''}`);
           }
 
         } catch (error: unknown) {
