@@ -14,7 +14,7 @@ $ npm install -g @gravitate-health/lens-tool-bundler
 $ lens-tool-bundler COMMAND
 running command...
 $ lens-tool-bundler (--version)
-@gravitate-health/lens-tool-bundler/0.4.0 linux-x64 node-v18.19.1
+@gravitate-health/lens-tool-bundler/0.4.1 linux-x64 node-v18.19.1
 $ lens-tool-bundler --help [COMMAND]
 USAGE
   $ lens-tool-bundler COMMAND
@@ -78,7 +78,7 @@ EXAMPLES
   $ lens-tool-bundler batch-bundle ./lenses --exclude "test.*"
 ```
 
-_See code: [src/commands/batch-bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/batch-bundle.ts)_
+_See code: [src/commands/batch-bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/batch-bundle.ts)_
 
 ## `lens-tool-bundler batch-check [DIRECTORY]`
 
@@ -108,7 +108,7 @@ EXAMPLES
   $ lens-tool-bundler batch-check --json
 ```
 
-_See code: [src/commands/batch-check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/batch-check.ts)_
+_See code: [src/commands/batch-check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/batch-check.ts)_
 
 ## `lens-tool-bundler batch-test [DIRECTORY]`
 
@@ -139,7 +139,7 @@ EXAMPLES
   $ lens-tool-bundler batch-test ./lenses --verbose
 ```
 
-_See code: [src/commands/batch-test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/batch-test.ts)_
+_See code: [src/commands/batch-test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/batch-test.ts)_
 
 ## `lens-tool-bundler batch-upload [DIRECTORY]`
 
@@ -172,7 +172,7 @@ EXAMPLES
   $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"
 ```
 
-_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/batch-upload.ts)_
+_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/batch-upload.ts)_
 
 ## `lens-tool-bundler bundle FILE`
 
@@ -204,7 +204,7 @@ EXAMPLES
   $ lens-tool-bundler bundle lens.js -u
 ```
 
-_See code: [src/commands/bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/bundle.ts)_
+_See code: [src/commands/bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/bundle.ts)_
 
 ## `lens-tool-bundler check FILE`
 
@@ -233,7 +233,7 @@ EXAMPLES
   $ lens-tool-bundler check mylens.js -b MyLens.json
 ```
 
-_See code: [src/commands/check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/check.ts)_
+_See code: [src/commands/check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/check.ts)_
 
 ## `lens-tool-bundler help [COMMAND]`
 
@@ -283,7 +283,7 @@ EXAMPLES
   $ lens-tool-bundler lsenhancejs ./lenses | xargs -I {} echo "Processing: {}"
 ```
 
-_See code: [src/commands/lsenhancejs.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/lsenhancejs.ts)_
+_See code: [src/commands/lsenhancejs.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/lsenhancejs.ts)_
 
 ## `lens-tool-bundler lslens [DIRECTORY]`
 
@@ -316,7 +316,7 @@ EXAMPLES
   $ lens-tool-bundler lslens ./lenses | xargs -I {} echo "Processing: {}"
 ```
 
-_See code: [src/commands/lslens.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/lslens.ts)_
+_See code: [src/commands/lslens.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/lslens.ts)_
 
 ## `lens-tool-bundler new NAME`
 
@@ -342,7 +342,7 @@ EXAMPLES
   $ lens-tool-bundler new MyLens -d
 ```
 
-_See code: [src/commands/new.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/new.ts)_
+_See code: [src/commands/new.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/new.ts)_
 
 ## `lens-tool-bundler plugins`
 
@@ -657,7 +657,7 @@ EXAMPLES
   $ lens-tool-bundler test ./lenses/enhance-lens.json
 ```
 
-_See code: [src/commands/test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/test.ts)_
+_See code: [src/commands/test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/test.ts)_
 
 ## `lens-tool-bundler upload FILE`
 
@@ -680,5 +680,5 @@ EXAMPLES
   $ lens-tool-bundler upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.0/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.4.1/src/commands/upload.ts)_
 <!-- commandsstop -->

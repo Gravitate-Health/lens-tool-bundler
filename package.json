@@ -1,6 +1,6 @@
 {
   "name": "@gravitate-health/lens-tool-bundler",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Tool to bundle from raw lens to a FHIR Standard Lens",
   "keywords": [
     "oclif"
