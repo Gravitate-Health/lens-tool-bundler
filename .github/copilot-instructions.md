@@ -79,9 +79,15 @@ Always creates:
 
 ### Upload Strategy
 [upload-controller.ts](../src/controllers/upload-controller.ts):
-1. GET `{domain}/Library?name:exact={name}` to check existence
-2. If found: PATCH to update existing resource
-3. If not found: POST to create new resource
+1. GET `{domain}/Library?name={encodeURIComponent(name)}` to check existence
+2. If found: PUT to update existing resource (FHIR standard update operation)
+3. If not found: POST to create new resource (with `id` field removed)
+
+**FHIR Compliance**:
+- Content-Type: `application/fhir+json` (not `application/json`)
+- POST: Server auto-generates `id`, so client must not provide it
+- PUT: Client must provide matching `id` for existing resource
+- Search parameter: Use `name=` (not `name:exact=`) for better compatibility
 
 ### Spinner Convention
 Commands use ora spinners with helper functions from [spinner-controller.ts](../src/controllers/spinner-controller.ts):
@@ -97,10 +103,13 @@ Commands use ora spinners with helper functions from [spinner-controller.ts](../
 - **ora**: Terminal spinners for progress feedback
 
 ### FHIR Server Integration
-Expects FHIR R4-compliant servers supporting:
+Expects FHIR R4-compliant servers (tested with HAPI FHIR) supporting:
 - `Library` resource type
-- Search by `name:exact` parameter
-- PATCH for updates (not standard FHIR - project-specific)
+- Search by `name` parameter (e.g., `?name={value}`)
+- PUT for updates (standard FHIR update operation)
+- POST for creation (server auto-generates resource IDs)
+- Content-Type: `application/fhir+json`
+- Returns FHIR `OperationOutcome` resources on errors with structured diagnostics
 
 ### Lens Template
 `new` command fetches: `https://raw.githubusercontent.com/Gravitate-Health/lens-template/refs/heads/main/my-lens.js`
@@ -120,8 +129,29 @@ Expects FHIR R4-compliant servers supporting:
 - Always use ISO 8601: `new Date().toISOString()`
 - Date updates can be skipped with `--skip-date` flag in batch operations
 
-### Error Handling
-Commands catch file I/O errors and display with `spinner.fail()`, then return early (no throws to user)
+### Error Handling & Exit Codes
+**All commands MUST use proper exit codes for CI/CD integration:**
+- **Exit 0**: Success - all operations completed without errors
+- **Exit 1**: Failure - one or more operations failed
+- **Exit 2**: Fatal error - unexpected errors (used by batch-check)
+
+Commands catch file I/O errors and display with `spinner.fail()`, then call `this.error(message, { exit: 1 })` to exit with proper code.
+
+**Implementation Pattern**:
+```typescript
+try {
+  // operations
+  if (result.errors > 0) {
+    this.error('Some operations failed', { exit: 1 });
+  }
+} catch (error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  spinner.fail(`Error: ${message}`);
+  this.error(message, { exit: 1 });
+}
+```
+
+**Never use `this.exit(0)` inside try-catch blocks** - it throws internally and will be caught as an error. Use `return` instead.
 
 ## Testing
 
@@ -147,8 +177,11 @@ lens-tool-bundler bundle enhance.js -n "My Lens"
 # Batch bundle with smart skipping
 lens-tool-bundler batch-bundle ./lenses --skip-valid
 
-# Upload to FHIR server
-lens-tool-bundler upload lens.json -d https://fhir.example.com
+# Upload to FHIR server (note: domain should NOT include /Library path)
+lens-tool-bundler upload lens.json -d https://fhir.example.com/api/fhir
+
+# Batch upload with error handling
+lens-tool-bundler batch-upload ./lenses -d https://fhir.example.com/api/fhir
 
 # Test single lens with verbose output
 lens-tool-bundler test lens.json -v
@@ -156,9 +189,34 @@ lens-tool-bundler test lens.json -v
 # Batch test with fail-fast mode
 lens-tool-bundler batch-test ./lenses --fail-fast
 
+# Check integrity between JS and bundle
+lens-tool-bundler check mylens.js
+
+# Batch check all lenses
+lens-tool-bundler batch-check ./lenses
+
 # List all valid lenses with validation
 lens-tool-bundler lslens -v
 
 # List enhance JS files with pairing details
 lens-tool-bundler lsenhancejs -d
+```
+
+## CI/CD Integration
+
+All commands return proper exit codes for automation:
+
+```bash
+# Fail pipeline if any tests fail
+lens-tool-bundler batch-test ./lenses || exit 1
+
+# Bundle and verify in sequence
+lens-tool-bundler batch-bundle ./lenses && \
+lens-tool-bundler batch-check ./lenses && \
+lens-tool-bundler batch-test ./lenses
+
+# Conditional upload on success
+if lens-tool-bundler batch-test ./lenses; then
+  lens-tool-bundler batch-upload ./lenses -d $FHIR_SERVER
+fi
 ```
