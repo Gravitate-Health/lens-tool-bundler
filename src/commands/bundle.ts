@@ -38,25 +38,31 @@ export default class Bundle extends Command {
     // Validate flag combinations
     if (flags['package-json']) {
       if (flags.default) {
-        this.error('The --package-json flag is incompatible with --default (-d) flag');
+        this.error('The --package-json flag is incompatible with --default (-d) flag', { exit: 1 });
       }
       if (flags.name) {
-        this.error('The --package-json flag is incompatible with --name (-n) flag');
+        this.error('The --package-json flag is incompatible with --name (-n) flag', { exit: 1 });
       }
     } else if (!flags.update && !flags.name && !flags['package-json']) {
-      this.error('Either --name (-n) or --package-json (-p) flag is required when not updating');
+      this.error('Either --name (-n) or --package-json (-p) flag is required when not updating', { exit: 1 });
     }
 
     spinner.start('Starting process...');
 
-    if (flags.update) {
-      this.updateExistingBundle(args.file, flags.name, flags['package-json']);
-    } else if (flags['package-json']) {
-      this.bundleLensesFromPackageJson(args.file);
-    } else if (flags.default) {
-      this.bundleLensesDefaultInformaton(args.file, flags.name!);
-    } else {
-      this.bundleLensesInteractive(args.file, flags.name!);
+    try {
+      if (flags.update) {
+        await this.updateExistingBundle(args.file, flags.name, flags['package-json']);
+      } else if (flags['package-json']) {
+        await this.bundleLensesFromPackageJson(args.file);
+      } else if (flags.default) {
+        await this.bundleLensesDefaultInformaton(args.file, flags.name!);
+      } else {
+        await this.bundleLensesInteractive(args.file, flags.name!);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      spinner.fail(`Error during bundling: ${message}`);
+      this.error(message, { exit: 1 });
     }
   }
 
@@ -221,13 +227,13 @@ export default class Bundle extends Command {
       
       if (!bundleFileName || !bundleName) {
         spinner.fail('No valid FHIR Library bundle found. Please specify a name with -n or use -p flag.');
-        return;
+        throw new Error('No valid FHIR Library bundle found');
       }
     }
     
     if (!fs.existsSync(bundleFileName)) {
       spinner.fail(`Bundle file ${bundleFileName} does not exist. Use without -u flag to create a new bundle.`);
-      return;
+      throw new Error(`Bundle file ${bundleFileName} does not exist`);
     }
 
     changeSpinnerText('Updating existing bundle', spinner);

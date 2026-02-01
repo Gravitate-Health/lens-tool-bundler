@@ -236,10 +236,15 @@ export default class BatchBundle extends Command {
       this.log(`  Errors: ${result.errors}`);
       this.log('='.repeat(60));
 
+      // Exit with error code if any errors occurred
+      if (result.errors > 0) {
+        this.error('Some lenses failed to bundle', { exit: 1 });
+      }
+
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       spinner.fail(`Error during batch bundle: ${message}`);
-      this.error(message);
+      this.error(message, { exit: 1 });
     }
   }
 }

@@ -21,6 +21,35 @@ USAGE
 ...
 ```
 <!-- usagestop -->
+
+# Exit Codes
+
+All commands use standard exit codes for CI/CD integration:
+
+- **0**: Success - Command completed without errors
+- **1**: Failure - Command encountered errors during execution
+  - batch-bundle: One or more lenses failed to bundle
+  - batch-check: One or more integrity checks failed
+  - batch-test: One or more lens tests failed
+  - batch-upload: One or more lenses failed to upload
+  - bundle: Bundling operation failed
+  - check: Integrity check failed
+  - test: Lens test failed
+  - upload: Upload operation failed
+- **2**: Fatal error - Unexpected error during execution (used by batch-check)
+
+Use these exit codes in scripts and CI/CD pipelines to determine command success:
+
+```bash
+# Example: Fail CI pipeline if tests fail
+lens-tool-bundler batch-test ./lenses || exit 1
+
+# Example: Check integrity and continue on success
+if lens-tool-bundler check mylens.js; then
+  echo "Integrity check passed"
+fi
+```
+
 # Commands
 <!-- commands -->
 * [`lens-tool-bundler batch-bundle [DIRECTORY]`](#lens-tool-bundler-batch-bundle-directory)
