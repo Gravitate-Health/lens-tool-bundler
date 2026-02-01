@@ -87,7 +87,7 @@ export default class BatchTest extends Command {
 
       if (lenses.length === 0) {
         spinner.info('No lenses found to test.');
-        this.exit(0);
+        return;
       }
 
       const result: BatchTestResult = {
@@ -233,7 +233,7 @@ export default class BatchTest extends Command {
           symbol: '⭐',
           text: 'Batch test complete - ALL PASSED',
         });
-        this.exit(0);
+        return;
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);

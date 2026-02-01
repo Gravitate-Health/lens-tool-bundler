@@ -74,7 +74,7 @@ export default class Test extends Command {
           text: 'Test complete - PASSED',
         });
         
-        this.exit(0);
+        return;
       } else {
         this.log('✗ Tests failed!');
         this.log(`\nRan ${testResults.length} test(s)`);
