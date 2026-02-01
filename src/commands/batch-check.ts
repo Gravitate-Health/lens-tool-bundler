@@ -217,7 +217,7 @@ export default class BatchCheck extends Command {
     this.log(`${'='.repeat(70)}\n`);
 
     if (failed.length > 0) {
-      this.log('💡 Tip: Run "fhir-lens-bundler bundle <file> -u" to update out-of-sync bundles.');
+      this.log('💡 Tip: Run "lens-tool-bundler bundle <file> -u" to update out-of-sync bundles.');
     }
   }
 
