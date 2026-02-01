@@ -1197,16 +1197,20 @@ ARGUMENTS
   FILE  file to read
 
 FLAGS
-  -d, --default       use default values for the bundle
-  -n, --name=<value>  (required) name to apply to lens
-  -u, --update        update existing bundle file (content and date only)
+  -d, --default        use default values for the bundle
+  -n, --name=<value>   name to apply to lens
+  -p, --package-json   use values from package.json to populate FHIR library
+  -u, --update         update existing bundle file (content and date only)
 
 DESCRIPTION
   Bundles raw lenses into a FHIR compliant single file.
   
   By default, the command runs in interactive mode, prompting for bundle metadata.
   Use -d flag to skip prompts and use default values.
-  Use -u flag to update an existing bundle file with new content and updated date.
+  Use -p flag to automatically populate bundle metadata from package.json (name, version, 
+  description, author, license). This flag is incompatible with -d and -n flags.
+  Use -u flag to update an existing bundle file with new content and updated date. When using
+  -u without -n or -p, the command will automatically find and update the existing bundle.
 
 EXAMPLES
   $ lens-tool-bundler bundle mylens.js -n MyLens
