@@ -1,7 +1,41 @@
-Lens Tool Bundler
-=================
+# Lens Tool Bundler
 
-This is a CLI tool to bundle FHIR lenses into a single file.
+[![npm version](https://img.shields.io/npm/v/@gravitate-health/lens-tool-bundler.svg)](https://www.npmjs.com/package/@gravitate-health/lens-tool-bundler)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Node.js Version](https://img.shields.io/node/v/@gravitate-health/lens-tool-bundler.svg)](https://nodejs.org)
+[![npm downloads](https://img.shields.io/npm/dm/@gravitate-health/lens-tool-bundler.svg)](https://www.npmjs.com/package/@gravitate-health/lens-tool-bundler)
+
+> CLI tool for creating, bundling, testing, and deploying FHIR-compliant Gravitate Health lenses - JavaScript enhancement functions that personalize electronic product information (ePI) for patients.
+
+## Features
+
+✨ **Create**: Scaffold new lenses from templates or clone full repository with testing framework  
+📦 **Bundle**: Convert JavaScript lens functions into FHIR Library resources  
+🧪 **Test**: Run comprehensive validation and content preservation tests  
+🚀 **Deploy**: Upload lenses to FHIR servers with smart update/create logic  
+✅ **Validate**: Check integrity between source code and bundles  
+🔄 **Batch Operations**: Process multiple lenses at once with smart filtering
+
+## Quick Start
+
+```bash
+# Install globally
+npm install -g @gravitate-health/lens-tool-bundler
+
+# Create a new lens project
+lens-tool-bundler new MyLens --template
+
+# Bundle a lens
+lens-tool-bundler bundle mylens.js -p
+
+# Test the lens
+lens-tool-bundler test mylens.json
+
+# Upload to FHIR server
+lens-tool-bundler upload mylens.json -d https://your-fhir-server.com/api/fhir
+```
+
+## Table of Contents
 
 <!-- toc -->
 * [Usage](#usage)
@@ -10,6 +44,32 @@ This is a CLI tool to bundle FHIR lenses into a single file.
 * [Example: Check integrity and continue on success](#example-check-integrity-and-continue-on-success)
 * [Commands](#commands)
 <!-- tocstop -->
+
+## Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+- Code of conduct
+- Development setup
+- Submitting pull requests
+- Coding standards
+
+## Support
+
+- 📖 [Full Documentation](https://github.com/Gravitate-Health/lens-tool-bundler)
+- 🐛 [Report Issues](https://github.com/Gravitate-Health/lens-tool-bundler/issues)
+- 💬 [Discussions](https://github.com/Gravitate-Health/lens-tool-bundler/discussions)
+- 🔒 [Security Policy](SECURITY.md)
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+## Acknowledgments
+
+This project is part of the [Gravitate Health](https://www.gravitatehealth.eu) initiative, funded by the European Union.
+
+---
+
 # Usage
 <!-- usage -->
 ```sh-session
