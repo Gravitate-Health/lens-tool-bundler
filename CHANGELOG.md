@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-02-01
+
+### Fixed
+- All ESLint errors resolved (23 → 0 errors)
+- All command tests now passing (upgraded @oclif/test to v4.1.16)
+- Path import statements now use proper named imports
+- Indentation consistency across all files
+
+### Changed
+- Migrated from deprecated .eslintignore to eslint.config.mjs ignores
+- Updated test framework to oclif v4 with runCommand() pattern
+- Comprehensive documentation updates for testing and patterns
+
+### Removed
+- Deprecated .eslintignore file
+- Empty test/fixtures directory (now dynamically created)
+
 ## [0.5.0] - 2026-02-01
 
 ### Added
