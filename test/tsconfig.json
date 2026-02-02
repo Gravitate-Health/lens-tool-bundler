@@ -3,6 +3,9 @@
   "compilerOptions": {
     "noEmit": true
   },
+  "include": [
+    "**/*.test.ts"
+  ],
   "references": [
     {"path": ".."}
   ]

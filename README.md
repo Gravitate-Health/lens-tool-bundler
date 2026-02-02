@@ -59,6 +59,22 @@ We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for 
 - Submitting pull requests
 - Coding standards
 
+### Testing
+
+The project has comprehensive test coverage with 83 tests, all passing:
+- **47 unit/integration tests**: Models, controllers, and batch operations
+- **36 command tests**: All CLI commands with proper oclif v4 patterns
+
+```bash
+npm test               # Run all tests (83 passing)
+npm run lint           # Run ESLint
+```
+
+**Testing Framework**: @oclif/test v4.1.16 with Mocha + Chai
+- Uses `runCommand()` pattern for command testing
+- Proper exit code handling (0=success, 1=validation failure, 2=fatal error)
+- See [test/README.md](test/README.md) for detailed test documentation
+
 ## Support
 
 - 📖 [Full Documentation](https://github.com/Gravitate-Health/lens-tool-bundler)

@@ -5,7 +5,7 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['dist/**', 'lib/**', 'node_modules/**', '*.d.ts'],
+    ignores: ['dist/**', 'lib/**', 'node_modules/**', '*.d.ts', 'test/**'],
   },
   ...oclifConfig,
   {

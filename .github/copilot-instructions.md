@@ -36,9 +36,14 @@ lens-tool-bundler      # After npm link or global install
 
 ### Testing
 ```bash
-npm test               # Runs mocha tests + lint
+npm test               # Runs mocha tests + lint (83 tests, all passing)
 npm run lint           # ESLint with @typescript-eslint
 ```
+
+**Testing Framework**: @oclif/test v4.1.16 with Mocha + Chai
+- All 83 tests passing (47 unit/integration + 36 command tests)
+- Uses `runCommand()` pattern from oclif v4
+- Proper exit code handling (0 = success, 1 = validation failure, 2 = fatal error)
 
 ### Key Scripts
 - `prepack`: Builds and generates oclif manifest before publishing
@@ -231,6 +236,43 @@ lens-tool-bundler lslens -v
 # List enhance JS files with pairing details
 lens-tool-bundler lsenhancejs -d
 ```
+
+## Testing
+
+### Command Testing with oclif v4
+
+All command tests use @oclif/test v4.1.16 with the `runCommand()` pattern:
+
+```typescript
+import {runCommand} from '@oclif/test'
+import {expect} from 'chai'
+
+it('should execute command', async () => {
+  const {error, stdout, stderr, result} = await runCommand(['command', 'arg1', '--flag'])
+  
+  // Check success
+  expect(error).to.not.exist
+  
+  // Or check error with exit code
+  expect(error).to.exist
+  expect((error as any)?.oclif?.exit).to.equal(1)
+})
+```
+
+**Exit Code Conventions**:
+- `exit(0)`: Success - all operations completed
+- `exit(1)`: Validation failures - check mismatches, test failures, content validation
+- `exit(2)`: Fatal errors - missing files, parse errors, unexpected exceptions
+
+**Important**: Commands use `this.exit()` which throws EEXIT exceptions internally. Catch blocks must check for and rethrow EEXIT to avoid wrapping exit codes incorrectly.
+
+### Test Helpers
+
+Use helpers from `test/helpers/test-helper.ts` for common operations:
+- `createTestDirectory()`: Temp directory with auto-cleanup
+- `createMockEnhanceFile()`: Mock JavaScript lens function
+- `createMockLensFile()`: Mock FHIR Library bundle
+- `readBase64ContentFromLens()`: Decode bundle content for verification
 
 ## CI/CD Integration
 

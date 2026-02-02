@@ -113,6 +113,47 @@ We use Dependabot to monitor dependencies for security vulnerabilities:
 - Weekly checks for new vulnerabilities
 - npm audit in CI/CD pipeline
 
+### Current Known Dependency Vulnerabilities (v0.5.1)
+
+As of February 2026, the project has the following known vulnerabilities that are **not exploitable** in this CLI tool's context:
+
+#### 1. Bundled npm Dependencies (50 vulnerabilities)
+These vulnerabilities exist in npm's bundled dependencies (node_modules/npm/):
+- **brace-expansion**: RegEx DoS vulnerability
+- **diff**: DoS vulnerability in parsePatch/applyPatch
+- **glob**: Command injection via CLI
+- **tar**: Path traversal vulnerabilities
+- **cacache, make-fetch-happen, pacote, sigstore**: Dependent vulnerabilities
+
+**Status**: ✅ **Not Exploitable**
+- These are bundled within npm itself (not directly used by our code)
+- Cannot be fixed without updating npm globally
+- Do not affect the security of lens-tool-bundler operations
+- Require npm maintainers to release updates
+
+#### 2. AWS SDK Dependencies (1 vulnerability)
+The oclif framework (v4.22.73) includes AWS SDK packages for plugin marketplace features:
+- **fast-xml-parser**: RangeError DoS vulnerability (affects @aws-sdk/xml-builder)
+
+**Status**: ✅ **Not Exploitable**
+- Only used by oclif for plugin marketplace features (not used by lens-tool-bundler)
+- Requires Node.js ≥20.0.0 (project currently supports Node.js ≥18.0.0)
+- AWS SDK team is actively addressing this issue
+- Does not affect core lens bundling, testing, or deployment functionality
+
+#### Mitigation Strategy
+1. **Regular Updates**: We monitor and update dependencies as fixes become available
+2. **Minimal Attack Surface**: The CLI tool does not expose network services or user inputs that could trigger these vulnerabilities
+3. **Sandboxed Execution**: Lens validation and testing run in isolated contexts
+4. **User Awareness**: Users should follow security best practices (see above)
+
+#### Future Plans
+- Upgrade to Node.js ≥20.0.0 when project dependencies are fully compatible
+- Continue monitoring for upstream fixes from npm and AWS SDK maintainers
+- Remove or replace dependencies if vulnerabilities become exploitable
+
+**Note**: These vulnerabilities are tracked in npm audit reports. Run `npm audit` to see the full details. We assess all reported vulnerabilities and prioritize fixes based on actual risk to users.
+
 ## Compliance
 
 This project handles healthcare-related data. Ensure compliance with:
