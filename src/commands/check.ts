@@ -30,6 +30,11 @@ export default class Check extends Command {
         this.exit(1);
       }
     } catch (error) {
+      // Rethrow EEXIT errors (from this.exit() calls) - don't catch them
+      if (error instanceof Error && error.message.includes('EEXIT')) {
+        throw error;
+      }
+
       if (!flags.quiet) {
         this.error(`Error during integrity check: ${error}`);
       }
@@ -95,7 +100,7 @@ export default class Check extends Command {
             this.log(`Searched for: ${path.basename(bundleFile)}`);
           }
 
-          return {message, success: false};
+          throw new Error(message);
         }
       }
     }
@@ -107,7 +112,7 @@ export default class Check extends Command {
         this.log(`❌ ${message}`);
       }
 
-      return {message, success: false};
+      throw new Error(message);
     }
 
     let bundle: any;
