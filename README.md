@@ -99,7 +99,7 @@ $ npm install -g @gravitate-health/lens-tool-bundler
 $ lens-tool-bundler COMMAND
 running command...
 $ lens-tool-bundler (--version)
-@gravitate-health/lens-tool-bundler/0.5.1 linux-x64 node-v18.19.1
+@gravitate-health/lens-tool-bundler/0.5.2 linux-x64 node-v18.19.1
 $ lens-tool-bundler --help [COMMAND]
 USAGE
   $ lens-tool-bundler COMMAND
@@ -168,7 +168,7 @@ USAGE
   $ lens-tool-bundler batch-bundle [DIRECTORY] [-e <value>] [-f] [-d] [-s]
 
 ARGUMENTS
-  DIRECTORY  [default: .] directory containing lenses to bundle
+  [DIRECTORY]  [default: .] directory containing lenses to bundle
 
 FLAGS
   -d, --skip-date        do not update the date field when bundling
@@ -191,7 +191,7 @@ EXAMPLES
   $ lens-tool-bundler batch-bundle ./lenses --exclude "test.*"
 ```
 
-_See code: [src/commands/batch-bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/batch-bundle.ts)_
+_See code: [src/commands/batch-bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/batch-bundle.ts)_
 
 ## `lens-tool-bundler batch-check [DIRECTORY]`
 
@@ -202,7 +202,7 @@ USAGE
   $ lens-tool-bundler batch-check [DIRECTORY] [-j] [-q]
 
 ARGUMENTS
-  DIRECTORY  [default: .] directory to search for lens files
+  [DIRECTORY]  [default: .] directory to search for lens files
 
 FLAGS
   -j, --json   output results as JSON
@@ -221,7 +221,7 @@ EXAMPLES
   $ lens-tool-bundler batch-check --json
 ```
 
-_See code: [src/commands/batch-check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/batch-check.ts)_
+_See code: [src/commands/batch-check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/batch-check.ts)_
 
 ## `lens-tool-bundler batch-test [DIRECTORY]`
 
@@ -232,7 +232,7 @@ USAGE
   $ lens-tool-bundler batch-test [DIRECTORY] [-e <value>] [-f] [-v]
 
 ARGUMENTS
-  DIRECTORY  [default: .] directory containing lenses to test
+  [DIRECTORY]  [default: .] directory containing lenses to test
 
 FLAGS
   -e, --exclude=<value>  regex pattern to exclude files (applied to filename)
@@ -252,7 +252,7 @@ EXAMPLES
   $ lens-tool-bundler batch-test ./lenses --verbose
 ```
 
-_See code: [src/commands/batch-test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/batch-test.ts)_
+_See code: [src/commands/batch-test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/batch-test.ts)_
 
 ## `lens-tool-bundler batch-upload [DIRECTORY]`
 
@@ -263,7 +263,7 @@ USAGE
   $ lens-tool-bundler batch-upload [DIRECTORY] -d <value> [-e <value>] [-f] [-t] [-s]
 
 ARGUMENTS
-  DIRECTORY  [default: .] directory containing lenses to upload
+  [DIRECTORY]  [default: .] directory containing lenses to upload
 
 FLAGS
   -d, --domain=<value>   (required) domain where FHIR server is hosted (with http/https)
@@ -285,7 +285,7 @@ EXAMPLES
   $ lens-tool-bundler batch-upload ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"
 ```
 
-_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/batch-upload.ts)_
+_See code: [src/commands/batch-upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/batch-upload.ts)_
 
 ## `lens-tool-bundler bundle FILE`
 
@@ -317,7 +317,7 @@ EXAMPLES
   $ lens-tool-bundler bundle lens.js -u
 ```
 
-_See code: [src/commands/bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/bundle.ts)_
+_See code: [src/commands/bundle.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/bundle.ts)_
 
 ## `lens-tool-bundler check FILE`
 
@@ -346,7 +346,7 @@ EXAMPLES
   $ lens-tool-bundler check mylens.js -b MyLens.json
 ```
 
-_See code: [src/commands/check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/check.ts)_
+_See code: [src/commands/check.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/check.ts)_
 
 ## `lens-tool-bundler help [COMMAND]`
 
@@ -357,7 +357,7 @@ USAGE
   $ lens-tool-bundler help [COMMAND...] [-n]
 
 ARGUMENTS
-  COMMAND...  Command to show help for.
+  [COMMAND...]  Command to show help for.
 
 FLAGS
   -n, --nested-commands  Include all nested commands in the output.
@@ -366,7 +366,7 @@ DESCRIPTION
   Display help for lens-tool-bundler.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.1/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.37/src/commands/help.ts)_
 
 ## `lens-tool-bundler lsenhancejs [DIRECTORY]`
 
@@ -377,7 +377,7 @@ USAGE
   $ lens-tool-bundler lsenhancejs [DIRECTORY] [-d] [-j]
 
 ARGUMENTS
-  DIRECTORY  [default: .] directory to search for enhance JS files
+  [DIRECTORY]  [default: .] directory to search for enhance JS files
 
 FLAGS
   -d, --details  show details about matches (exact vs fallback)
@@ -396,7 +396,7 @@ EXAMPLES
   $ lens-tool-bundler lsenhancejs ./lenses | xargs -I {} echo "Processing: {}"
 ```
 
-_See code: [src/commands/lsenhancejs.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/lsenhancejs.ts)_
+_See code: [src/commands/lsenhancejs.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/lsenhancejs.ts)_
 
 ## `lens-tool-bundler lslens [DIRECTORY]`
 
@@ -407,7 +407,7 @@ USAGE
   $ lens-tool-bundler lslens [DIRECTORY] [-a] [-j] [-v]
 
 ARGUMENTS
-  DIRECTORY  [default: .] directory to search for lenses
+  [DIRECTORY]  [default: .] directory to search for lenses
 
 FLAGS
   -a, --all       include lenses that may be missing content (base64 data)
@@ -429,7 +429,7 @@ EXAMPLES
   $ lens-tool-bundler lslens ./lenses | xargs -I {} echo "Processing: {}"
 ```
 
-_See code: [src/commands/lslens.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/lslens.ts)_
+_See code: [src/commands/lslens.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/lslens.ts)_
 
 ## `lens-tool-bundler new NAME`
 
@@ -461,7 +461,7 @@ EXAMPLES
   $ lens-tool-bundler new MyLens --template --fork
 ```
 
-_See code: [src/commands/new.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/new.ts)_
+_See code: [src/commands/new.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/new.ts)_
 
 ## `lens-tool-bundler plugins`
 
@@ -629,7 +629,7 @@ USAGE
   $ lens-tool-bundler plugins remove plugins:uninstall PLUGIN...
 
 ARGUMENTS
-  PLUGIN  plugin to uninstall
+  [PLUGIN]  plugin to uninstall
 
 FLAGS
   -h, --help     Show CLI help.
@@ -652,7 +652,7 @@ USAGE
   $ lens-tool-bundler plugins uninstall PLUGIN...
 
 ARGUMENTS
-  PLUGIN  plugin to uninstall
+  [PLUGIN]  plugin to uninstall
 
 FLAGS
   -h, --help     Show CLI help.
@@ -677,7 +677,7 @@ USAGE
   $ lens-tool-bundler plugins unlink plugins:uninstall PLUGIN...
 
 ARGUMENTS
-  PLUGIN  plugin to uninstall
+  [PLUGIN]  plugin to uninstall
 
 FLAGS
   -h, --help     Show CLI help.
@@ -732,7 +732,7 @@ EXAMPLES
   $ lens-tool-bundler test ./lenses/enhance-lens.json
 ```
 
-_See code: [src/commands/test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/test.ts)_
+_See code: [src/commands/test.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/test.ts)_
 
 ## `lens-tool-bundler upload FILE`
 
@@ -755,5 +755,5 @@ EXAMPLES
   $ lens-tool-bundler upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.1/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/Gravitate-Health/lens-tool-bundler/blob/v0.5.2/src/commands/upload.ts)_
 <!-- commandsstop -->
