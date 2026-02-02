@@ -1,10 +1,9 @@
 export class Coding {
-    code: string;
+  code: string;
+  system?: string;
 
-    system?: string;
-
-    constructor(code: string, system?: string) {
-        this.code = code;
-        this.system = system;
-    }
+  constructor(code: string, system?: string) {
+    this.code = code;
+    this.system = system;
+  }
 }

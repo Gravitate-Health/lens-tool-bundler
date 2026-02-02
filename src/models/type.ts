@@ -1,13 +1,13 @@
-import { Coding } from "./coding.js";
+import {Coding} from './coding.js';
 
 export class Type {
-    coding: Coding[];
+  coding: Coding[];
 
-    constructor(coding: Coding[]) {
-        this.coding = coding;
-    }
+  constructor(coding: Coding[]) {
+    this.coding = coding;
+  }
 
-    public static defaultValues(): Type {
-        return new Type([new Coding("logical-library")]);
-    }
+  public static defaultValues(): Type {
+    return new Type([new Coding('logical-library')]);
+  }
 }

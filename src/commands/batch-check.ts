@@ -1,48 +1,46 @@
-import { Args, Command, Flags } from '@oclif/core'
+import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+
 import * as dirController from '../controllers/dir-controller.js'
 
 interface CheckResult {
-  jsFile: string;
   bundleFile: string;
-  passed: boolean;
   error?: string;
+  jsFile: string;
+  passed: boolean;
 }
 
 export default class BatchCheck extends Command {
   static args = {
-    directory: Args.string({ 
-      default: '.', 
+    directory: Args.string({
+      default: '.',
       description: 'directory to search for lens files',
-      required: false
+      required: false,
     }),
   }
-
   static description = 'Batch check integrity between all lens JavaScript files and their FHIR Library bundles.'
-
   static examples = [
     '<%= config.bin %> <%= command.id %>',
     '<%= config.bin %> <%= command.id %> ./lenses',
     '<%= config.bin %> <%= command.id %> -q',
     '<%= config.bin %> <%= command.id %> --json',
   ]
-
   static flags = {
-    quiet: Flags.boolean({ 
-      char: 'q', 
-      description: 'suppress output, only return exit code', 
-      required: false 
+    json: Flags.boolean({
+      char: 'j',
+      description: 'output results as JSON',
+      required: false,
     }),
-    json: Flags.boolean({ 
-      char: 'j', 
-      description: 'output results as JSON', 
-      required: false 
+    quiet: Flags.boolean({
+      char: 'q',
+      description: 'suppress output, only return exit code',
+      required: false,
     }),
   }
 
   public async run(): Promise<void> {
-    const { args, flags } = await this.parse(BatchCheck);
+    const {args, flags} = await this.parse(BatchCheck);
 
     const directory = path.resolve(args.directory);
 
@@ -50,13 +48,13 @@ export default class BatchCheck extends Command {
       const enhanceFiles = dirController.findEnhanceFiles(directory);
 
       // Collect all JS files with their corresponding JSON files
-      const filePairs: Array<{ jsFile: string; jsonFile: string }> = [];
-      
+      const filePairs: Array<{jsFile: string; jsonFile: string}> = [];
+
       // Get all JS files from exact matches
       for (const [jsonPath, jsPath] of Object.entries(enhanceFiles.exact)) {
         filePairs.push({
           jsFile: jsPath as string,
-          jsonFile: jsonPath as string
+          jsonFile: jsonPath as string,
         });
       }
 
@@ -64,6 +62,7 @@ export default class BatchCheck extends Command {
         if (!flags.quiet && !flags.json) {
           this.log('No lens files found to check.');
         }
+
         return;
       }
 
@@ -95,6 +94,7 @@ export default class BatchCheck extends Command {
       if (!flags.quiet) {
         this.error(`Error during batch check: ${message}`);
       }
+
       this.exit(2);
     }
   }
@@ -104,10 +104,10 @@ export default class BatchCheck extends Command {
       // Read JavaScript file
       if (!fs.existsSync(jsFile)) {
         return {
-          jsFile,
           bundleFile: jsonFile,
+          error: 'JavaScript file not found',
+          jsFile,
           passed: false,
-          error: 'JavaScript file not found'
         };
       }
 
@@ -117,10 +117,10 @@ export default class BatchCheck extends Command {
       // Check if bundle exists
       if (!fs.existsSync(jsonFile)) {
         return {
-          jsFile,
           bundleFile: jsonFile,
+          error: 'Bundle file not found',
+          jsFile,
           passed: false,
-          error: 'Bundle file not found'
         };
       }
 
@@ -129,31 +129,31 @@ export default class BatchCheck extends Command {
       try {
         const bundleContent = fs.readFileSync(jsonFile, 'utf8');
         bundle = JSON.parse(bundleContent);
-      } catch (error) {
+      } catch {
         return {
-          jsFile,
           bundleFile: jsonFile,
+          error: 'Failed to parse bundle JSON',
+          jsFile,
           passed: false,
-          error: 'Failed to parse bundle JSON'
         };
       }
 
       // Validate bundle structure
       if (bundle.resourceType !== 'Library') {
         return {
-          jsFile,
           bundleFile: jsonFile,
+          error: 'Bundle is not a FHIR Library resource',
+          jsFile,
           passed: false,
-          error: 'Bundle is not a FHIR Library resource'
         };
       }
 
       if (!bundle.content || bundle.content.length === 0 || !bundle.content[0].data) {
         return {
-          jsFile,
           bundleFile: jsonFile,
+          error: 'Bundle has no content data',
+          jsFile,
           passed: false,
-          error: 'Bundle has no content data'
         };
       }
 
@@ -162,27 +162,43 @@ export default class BatchCheck extends Command {
       // Compare content
       if (bundleBase64 === expectedBase64) {
         return {
-          jsFile,
           bundleFile: jsonFile,
-          passed: true
-        };
-      } else {
-        return {
           jsFile,
-          bundleFile: jsonFile,
-          passed: false,
-          error: 'Content mismatch - bundle is out of sync with JS file'
+          passed: true,
         };
       }
+
+      return {
+        bundleFile: jsonFile,
+        error: 'Content mismatch - bundle is out of sync with JS file',
+        jsFile,
+        passed: false,
+      };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       return {
-        jsFile,
         bundleFile: jsonFile,
+        error: `Unexpected error: ${message}`,
+        jsFile,
         passed: false,
-        error: `Unexpected error: ${message}`
       };
     }
+  }
+
+  private outputJson(results: CheckResult[]): void {
+    const output = {
+      failed: results.filter(r => !r.passed).length,
+      passed: results.filter(r => r.passed).length,
+      results: results.map(r => ({
+        bundleFile: path.relative(process.cwd(), r.bundleFile),
+        error: r.error || null,
+        jsFile: path.relative(process.cwd(), r.jsFile),
+        passed: r.passed,
+      })),
+      total: results.length,
+    };
+
+    this.log(JSON.stringify(output, null, 2));
   }
 
   private outputResults(results: CheckResult[]): void {
@@ -190,7 +206,7 @@ export default class BatchCheck extends Command {
     const failed = results.filter(r => !r.passed);
 
     this.log(`\n${'='.repeat(70)}`);
-    this.log(`Batch Integrity Check Results`);
+    this.log('Batch Integrity Check Results');
     this.log(`${'='.repeat(70)}\n`);
 
     if (passed.length > 0) {
@@ -198,6 +214,7 @@ export default class BatchCheck extends Command {
       for (const result of passed) {
         this.log(`   ${path.relative(process.cwd(), result.jsFile)} ↔ ${path.relative(process.cwd(), result.bundleFile)}`);
       }
+
       this.log('');
     }
 
@@ -209,6 +226,7 @@ export default class BatchCheck extends Command {
           this.log(`      Error: ${result.error}`);
         }
       }
+
       this.log('');
     }
 
@@ -219,21 +237,5 @@ export default class BatchCheck extends Command {
     if (failed.length > 0) {
       this.log('💡 Tip: Run "lens-tool-bundler bundle <file> -u" to update out-of-sync bundles.');
     }
-  }
-
-  private outputJson(results: CheckResult[]): void {
-    const output = {
-      total: results.length,
-      passed: results.filter(r => r.passed).length,
-      failed: results.filter(r => !r.passed).length,
-      results: results.map(r => ({
-        jsFile: path.relative(process.cwd(), r.jsFile),
-        bundleFile: path.relative(process.cwd(), r.bundleFile),
-        passed: r.passed,
-        error: r.error || null
-      }))
-    };
-
-    this.log(JSON.stringify(output, null, 2));
   }
 }

@@ -1,50 +1,48 @@
-import { Args, Command, Flags } from '@oclif/core'
+import {Args, Command, Flags} from '@oclif/core'
 import inquirer from 'inquirer';
-import ora from 'ora'
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import ora from 'ora'
 
-import { getFileData, writeBundleToFile } from '../controllers/file-controller.js';
-import { changeSpinnerText, stopAndPersistSpinner } from '../controllers/spinner-controller.js'
-import { LensFhirResource } from '../models/lens-fhir-resource.js'
+import {getFileData, writeBundleToFile} from '../controllers/file-controller.js';
+import {changeSpinnerText, stopAndPersistSpinner} from '../controllers/spinner-controller.js'
+import {LensFhirResource} from '../models/lens-fhir-resource.js'
 
 const spinner = ora();
 
 export default class Bundle extends Command {
   static args = {
-    file: Args.string({ description: 'file to read', required: true }),
+    file: Args.string({description: 'file to read', required: true}),
   }
-
   static description = 'Bundles raw lenses into a FHIR compliant single file.'
-
   static examples = [
     '<%= config.bin %> <%= command.id %> lens.js -n my-lens',
     '<%= config.bin %> <%= command.id %> lens.js -n my-lens -d',
     '<%= config.bin %> <%= command.id %> lens.js -p',
     '<%= config.bin %> <%= command.id %> lens.js -u',
   ]
-
   static flags = {
     // flag with no value (-f, --force)
-    default: Flags.boolean  ({ char: 'd', description: 'use default values for the bundle', required: false}),
-    name: Flags.string({ char: 'n', description: 'name to apply to lens', required: false }),
-    update: Flags.boolean({ char: 'u', description: 'update existing bundle file (content and date only)', required: false }),
-    'package-json': Flags.boolean({ char: 'p', description: 'use values from package.json to populate FHIR library', required: false }),
+    default: Flags.boolean({char: 'd', description: 'use default values for the bundle', required: false}),
+    name: Flags.string({char: 'n', description: 'name to apply to lens', required: false}),
+    'package-json': Flags.boolean({char: 'p', description: 'use values from package.json to populate FHIR library', required: false}),
+    update: Flags.boolean({char: 'u', description: 'update existing bundle file (content and date only)', required: false}),
   }
 
   public async run(): Promise<void> {
-    const { args, flags } = await this.parse(Bundle);
+    const {args, flags} = await this.parse(Bundle);
 
     // Validate flag combinations
     if (flags['package-json']) {
       if (flags.default) {
-        this.error('The --package-json flag is incompatible with --default (-d) flag', { exit: 1 });
+        this.error('The --package-json flag is incompatible with --default (-d) flag', {exit: 1});
       }
+
       if (flags.name) {
-        this.error('The --package-json flag is incompatible with --name (-n) flag', { exit: 1 });
+        this.error('The --package-json flag is incompatible with --name (-n) flag', {exit: 1});
       }
     } else if (!flags.update && !flags.name && !flags['package-json']) {
-      this.error('Either --name (-n) or --package-json (-p) flag is required when not updating', { exit: 1 });
+      this.error('Either --name (-n) or --package-json (-p) flag is required when not updating', {exit: 1});
     }
 
     spinner.start('Starting process...');
@@ -62,7 +60,7 @@ export default class Bundle extends Command {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       spinner.fail(`Error during bundling: ${message}`);
-      this.error(message, { exit: 1 });
+      this.error(message, {exit: 1});
     }
   }
 
@@ -78,6 +76,34 @@ export default class Bundle extends Command {
     const bundle = LensFhirResource.defaultValues(name, base64FileData);
     stopAndPersistSpinner('Bundle created', spinner);
     changeSpinnerText('Writing bundle to file...', spinner)
+    writeBundleToFile(bundle, base64FileData);
+    stopAndPersistSpinner(`Bundle written to file: ${bundle.name}.json`, spinner);
+    spinner.stopAndPersist({
+      symbol: '⭐',
+      text: 'Process complete',
+    });
+  }
+
+  private bundleLensesFromPackageJson(file: string): void {
+    changeSpinnerText('Reading package.json...', spinner);
+    const packageJson = this.readPackageJson();
+
+    if (!packageJson.name) {
+      this.error('package.json does not contain a "name" field');
+    }
+
+    stopAndPersistSpinner('package.json read successfully', spinner);
+    changeSpinnerText('Bundling lenses with package.json values', spinner);
+    changeSpinnerText('Retrieving file data...', spinner);
+    const fileData = getFileData(file);
+    stopAndPersistSpinner('File data retrieved', spinner);
+    changeSpinnerText('Converting file data to base64...', spinner);
+    const base64FileData = this.stringTobase64(fileData);
+    stopAndPersistSpinner('File data converted to base64', spinner);
+    changeSpinnerText(`Making bundle with name: ${packageJson.name}`, spinner);
+    const bundle = LensFhirResource.fromPackageJson(packageJson, base64FileData);
+    stopAndPersistSpinner('Bundle created', spinner);
+    changeSpinnerText('Writing bundle to file...', spinner);
     writeBundleToFile(bundle, base64FileData);
     stopAndPersistSpinner(`Bundle written to file: ${bundle.name}.json`, spinner);
     spinner.stopAndPersist({
@@ -116,8 +142,8 @@ export default class Bundle extends Command {
         message: 'Enter the purpose of the bundle:',
         name: 'purpose',
         type: 'input',
-      }
-    ]).then((answers) => {
+      },
+    ]).then(answers => {
       changeSpinnerText(`Making bundle with name: ${answers.name}`, spinner);
       const bundle = LensFhirResource.interactiveValues(answers.name, answers.description, answers.purpose, answers.usage, base64FileData);
       stopAndPersistSpinner('Bundle created', spinner);
@@ -136,12 +162,13 @@ export default class Bundle extends Command {
     if (!fs.existsSync(packageJsonPath)) {
       this.error('package.json not found in current directory');
     }
-    
+
     try {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
       if (!packageJson.name) {
         this.error('package.json does not contain a "name" field');
       }
+
       return packageJson.name;
     } catch (error) {
       this.error(`Error reading package.json: ${error}`);
@@ -153,7 +180,7 @@ export default class Bundle extends Command {
     if (!fs.existsSync(packageJsonPath)) {
       this.error('package.json not found in current directory');
     }
-    
+
     try {
       return JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     } catch (error) {
@@ -161,39 +188,20 @@ export default class Bundle extends Command {
     }
   }
 
-  private bundleLensesFromPackageJson(file: string): void {
-    changeSpinnerText('Reading package.json...', spinner);
-    const packageJson = this.readPackageJson();
-    
-    if (!packageJson.name) {
-      this.error('package.json does not contain a "name" field');
+  private stringTobase64(str: string): string {
+    try {
+      return Buffer.from(str, 'binary').toString('base64');
+    } catch (error) {
+      console.log('Error converting string to base64:', error);
+      throw error;
     }
-    
-    stopAndPersistSpinner('package.json read successfully', spinner);
-    changeSpinnerText('Bundling lenses with package.json values', spinner);
-    changeSpinnerText('Retrieving file data...', spinner);
-    const fileData = getFileData(file);
-    stopAndPersistSpinner('File data retrieved', spinner);
-    changeSpinnerText('Converting file data to base64...', spinner);
-    const base64FileData = this.stringTobase64(fileData);
-    stopAndPersistSpinner('File data converted to base64', spinner);
-    changeSpinnerText(`Making bundle with name: ${packageJson.name}`, spinner);
-    const bundle = LensFhirResource.fromPackageJson(packageJson, base64FileData);
-    stopAndPersistSpinner('Bundle created', spinner);
-    changeSpinnerText('Writing bundle to file...', spinner);
-    writeBundleToFile(bundle, base64FileData);
-    stopAndPersistSpinner(`Bundle written to file: ${bundle.name}.json`, spinner);
-    spinner.stopAndPersist({
-      symbol: '⭐',
-      text: 'Process complete',
-    });
   }
 
   private updateExistingBundle(file: string, name?: string, usePackageJson?: boolean): void {
     // Determine the name from flags or try to find existing bundle
     let bundleName: string | undefined;
     let bundleFileName: string | undefined;
-    
+
     if (usePackageJson) {
       bundleName = this.getPackageJsonName();
       bundleFileName = `${bundleName}.json`;
@@ -204,12 +212,12 @@ export default class Bundle extends Command {
       // Try to find any existing bundle in current directory
       const files = fs.readdirSync(process.cwd());
       const jsonFiles = files.filter(f => f.endsWith('.json'));
-      
+
       if (jsonFiles.length === 0) {
         spinner.fail('No bundle file found. Please specify a name with -n or use -p flag.');
         return;
       }
-      
+
       // Try to find a valid FHIR Library bundle
       for (const jsonFile of jsonFiles) {
         try {
@@ -224,13 +232,13 @@ export default class Bundle extends Command {
           // Skip invalid JSON files
         }
       }
-      
+
       if (!bundleFileName || !bundleName) {
         spinner.fail('No valid FHIR Library bundle found. Please specify a name with -n or use -p flag.');
         throw new Error('No valid FHIR Library bundle found');
       }
     }
-    
+
     if (!fs.existsSync(bundleFileName)) {
       spinner.fail(`Bundle file ${bundleFileName} does not exist. Use without -u flag to create a new bundle.`);
       throw new Error(`Bundle file ${bundleFileName} does not exist`);
@@ -244,20 +252,20 @@ export default class Bundle extends Command {
     const base64FileData = this.stringTobase64(fileData);
     stopAndPersistSpinner('File data converted to base64', spinner);
     changeSpinnerText(`Updating bundle: ${bundleName}`, spinner);
-    
+
     try {
       const existingBundleJson = fs.readFileSync(bundleFileName, 'utf8');
       const existingBundle = JSON.parse(existingBundleJson);
-      
+
       // Update only the content and date
       existingBundle.date = new Date().toISOString();
       if (existingBundle.content && existingBundle.content.length > 0) {
         existingBundle.content[0].data = base64FileData;
       }
-      
+
       const updatedBundleJson = JSON.stringify(existingBundle, null, 2);
       fs.writeFileSync(bundleFileName, updatedBundleJson);
-      
+
       stopAndPersistSpinner('Bundle updated', spinner);
       spinner.stopAndPersist({
         symbol: '⭐',
@@ -265,15 +273,6 @@ export default class Bundle extends Command {
       });
     } catch (error) {
       spinner.fail(`Error updating bundle: ${error}`);
-      throw error;
-    }
-  }
-
-  private stringTobase64(str: string): string {
-    try {
-      return Buffer.from(str, 'binary').toString('base64');
-    } catch (error) {
-      console.log('Error converting string to base64:', error);
       throw error;
     }
   }

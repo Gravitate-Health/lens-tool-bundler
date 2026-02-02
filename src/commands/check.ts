@@ -1,33 +1,31 @@
-import { Args, Command, Flags } from '@oclif/core'
+import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { getFileData } from '../controllers/file-controller.js';
+
+import {getFileData} from '../controllers/file-controller.js';
 
 export default class Check extends Command {
   static args = {
-    file: Args.string({ description: 'JavaScript file to check', required: true }),
+    file: Args.string({description: 'JavaScript file to check', required: true}),
   }
-
   static description = 'Check integrity between JavaScript file and FHIR Library bundle content.'
-
   static examples = [
     '<%= config.bin %> <%= command.id %> mylens.js',
     '<%= config.bin %> <%= command.id %> mylens.js -n MyLens',
     '<%= config.bin %> <%= command.id %> mylens.js -b MyLens.json',
   ]
-
   static flags = {
-    name: Flags.string({ char: 'n', description: 'name of the bundle to check (without .json extension)', required: false }),
-    bundle: Flags.string({ char: 'b', description: 'path to the bundle file to check', required: false }),
-    quiet: Flags.boolean({ char: 'q', description: 'suppress output, only return exit code', required: false }),
+    bundle: Flags.string({char: 'b', description: 'path to the bundle file to check', required: false}),
+    name: Flags.string({char: 'n', description: 'name of the bundle to check (without .json extension)', required: false}),
+    quiet: Flags.boolean({char: 'q', description: 'suppress output, only return exit code', required: false}),
   }
 
   public async run(): Promise<void> {
-    const { args, flags } = await this.parse(Check);
+    const {args, flags} = await this.parse(Check);
 
     try {
       const result = await this.checkIntegrity(args.file, flags.name, flags.bundle, flags.quiet);
-      
+
       if (!result.success) {
         this.exit(1);
       }
@@ -35,21 +33,22 @@ export default class Check extends Command {
       if (!flags.quiet) {
         this.error(`Error during integrity check: ${error}`);
       }
+
       this.exit(2);
     }
   }
 
   private async checkIntegrity(
-    jsFile: string, 
-    bundleName?: string, 
+    jsFile: string,
+    bundleName?: string,
     bundlePath?: string,
-    quiet?: boolean
-  ): Promise<{ success: boolean; message: string }> {
+    quiet?: boolean,
+  ): Promise<{message: string; success: boolean;}> {
     // Read JavaScript file
     if (!fs.existsSync(jsFile)) {
       const message = `JavaScript file not found: ${jsFile}`;
       if (!quiet) this.error(message);
-      return { success: false, message };
+      return {message, success: false};
     }
 
     const jsContent = getFileData(jsFile);
@@ -57,7 +56,7 @@ export default class Check extends Command {
 
     // Find bundle file
     let bundleFile: string;
-    
+
     if (bundlePath) {
       bundleFile = bundlePath;
     } else if (bundleName) {
@@ -66,13 +65,13 @@ export default class Check extends Command {
       // Auto-detect: try same name as JS file
       const jsBaseName = path.basename(jsFile, path.extname(jsFile));
       bundleFile = path.join(path.dirname(jsFile), `${jsBaseName}.json`);
-      
+
       // If not found, try to find any Library bundle in the same directory
       if (!fs.existsSync(bundleFile)) {
         const dir = path.dirname(jsFile) || '.';
         const files = fs.readdirSync(dir);
         const jsonFiles = files.filter(f => f.endsWith('.json'));
-        
+
         let foundBundle = false;
         for (const jsonFile of jsonFiles) {
           const fullPath = path.join(dir, jsonFile);
@@ -88,14 +87,15 @@ export default class Check extends Command {
             // Skip invalid JSON files
           }
         }
-        
+
         if (!foundBundle) {
           const message = `No FHIR Library bundle found for ${jsFile}`;
           if (!quiet) {
             this.log(`❌ ${message}`);
             this.log(`Searched for: ${path.basename(bundleFile)}`);
           }
-          return { success: false, message };
+
+          return {message, success: false};
         }
       }
     }
@@ -106,7 +106,8 @@ export default class Check extends Command {
       if (!quiet) {
         this.log(`❌ ${message}`);
       }
-      return { success: false, message };
+
+      return {message, success: false};
     }
 
     let bundle: any;
@@ -119,7 +120,8 @@ export default class Check extends Command {
         this.log(`❌ ${message}`);
         this.log(`Error: ${error}`);
       }
-      return { success: false, message };
+
+      return {message, success: false};
     }
 
     // Validate bundle structure
@@ -128,7 +130,8 @@ export default class Check extends Command {
       if (!quiet) {
         this.log(`❌ ${message}`);
       }
-      return { success: false, message };
+
+      return {message, success: false};
     }
 
     if (!bundle.content || bundle.content.length === 0) {
@@ -136,17 +139,19 @@ export default class Check extends Command {
       if (!quiet) {
         this.log(`❌ ${message}`);
       }
-      return { success: false, message };
+
+      return {message, success: false};
     }
 
     const bundleBase64 = bundle.content[0].data;
-    
+
     if (!bundleBase64) {
       const message = `Bundle content has no data: ${bundleFile}`;
       if (!quiet) {
         this.log(`❌ ${message}`);
       }
-      return { success: false, message };
+
+      return {message, success: false};
     }
 
     // Compare content
@@ -159,18 +164,20 @@ export default class Check extends Command {
         this.log(`   Bundle name: ${bundle.name}`);
         this.log(`   Bundle version: ${bundle.version}`);
       }
-      return { success: true, message };
-    } else {
-      const message = `Integrity check failed: Content mismatch`;
-      if (!quiet) {
-        this.log(`❌ ${message}`);
-        this.log(`   JS file: ${jsFile}`);
-        this.log(`   Bundle: ${bundleFile}`);
-        this.log(`   Bundle name: ${bundle.name}`);
-        this.log(`   The content in the bundle does not match the JavaScript file.`);
-        this.log(`   Run 'bundle -u' to update the bundle with current JS content.`);
-      }
-      return { success: false, message };
+
+      return {message, success: true};
     }
+
+    const message = 'Integrity check failed: Content mismatch';
+    if (!quiet) {
+      this.log(`❌ ${message}`);
+      this.log(`   JS file: ${jsFile}`);
+      this.log(`   Bundle: ${bundleFile}`);
+      this.log(`   Bundle name: ${bundle.name}`);
+      this.log('   The content in the bundle does not match the JavaScript file.');
+      this.log('   Run \'bundle -u\' to update the bundle with current JS content.');
+    }
+
+    return {message, success: false};
   }
 }

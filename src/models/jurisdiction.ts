@@ -1,13 +1,13 @@
-import { Coding } from "./coding.js";
+import {Coding} from './coding.js';
 
 export class Jurisdiction {
-    coding: Coding[];
+  coding: Coding[];
 
-    constructor(coding: Coding[]) {
-        this.coding = coding;
-    }
+  constructor(coding: Coding[]) {
+    this.coding = coding;
+  }
 
-    public static defaultValues(): Jurisdiction {
-        return new Jurisdiction([new Coding("US", "urn:iso:std:iso:3166")]);
-    }
+  public static defaultValues(): Jurisdiction {
+    return new Jurisdiction([new Coding('US', 'urn:iso:std:iso:3166')]);
+  }
 }

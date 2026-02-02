@@ -12,8 +12,8 @@ export interface EnhanceFiles {
 }
 
 export interface LensEntry {
-  enhanceSource?: string;
   enhancedWithJs?: string;
+  enhanceSource?: string;
   hasBase64: boolean;
   lens: Record<string, unknown>;
   name: string;
@@ -32,7 +32,7 @@ export function validateFHIRLens(lens: Record<string, unknown>): ValidationResul
   const errors: string[] = [];
 
   if (!lens || typeof lens !== 'object') {
-    return { errors: ['Lens must be a JSON object'], isValid: false };
+    return {errors: ['Lens must be a JSON object'], isValid: false};
   }
 
   if (lens.resourceType !== 'Library') {
@@ -69,7 +69,7 @@ export function validateFHIRLens(lens: Record<string, unknown>): ValidationResul
 
   return {
     errors,
-    isValid: errors.length === 0
+    isValid: errors.length === 0,
   };
 }
 
@@ -108,7 +108,7 @@ export function findJsonFiles(dir: string): string[] {
 export function findEnhanceFiles(dir: string): EnhanceFiles {
   const enhanceFiles: EnhanceFiles = {
     exact: {},      // Map of JSON file path to matching JS file path
-    fallback: {}    // Map of directory to array of JS file paths with enhance functions
+    fallback: {},    // Map of directory to array of JS file paths with enhance functions
   };
 
   function traverse(currentDir: string): void {
@@ -132,17 +132,17 @@ export function findEnhanceFiles(dir: string): EnhanceFiles {
             /var\s+enhance\s*=/,
             /enhance\s*:\s*function/,
             /enhance\s*:\s*async\s+function/,
-            /enhance:\s*enhance/
+            /enhance:\s*enhance/,
           ];
-          
+
           const hasEnhance = enhancePatterns.some(pattern => pattern.test(content));
-          
+
           if (hasEnhance) {
             // Store mapping from potential JSON file name to JS file path
             const baseName = path.basename(file, '.js');
             const jsonFilePath = path.join(currentDir, baseName + '.json');
             enhanceFiles.exact[jsonFilePath] = filePath;
-            
+
             // Also track all JS files with enhance in this directory for fallback
             jsFilesInDir.push(filePath);
           }
@@ -236,10 +236,9 @@ export async function discoverLenses(lensFilePath: string): Promise<LensEntry[]>
             path: filePath,
             status: jsonData.status,
             url: jsonData.url,
-            version: jsonData.version || 'unknown'
+            version: jsonData.version || 'unknown',
           });
-        } else if ((validation.errors.length===1 && validation.errors[0].includes("content")) && isLensMissingBase64Content(jsonData)) {
-
+        } else if ((validation.errors.length === 1 && validation.errors[0].includes('content')) && isLensMissingBase64Content(jsonData)) {
           // Prioritize JS file with the same name as the JSON file
           let enhanceFile = enhanceFiles.exact[filePath];
           let enhanceSource = 'exact-match';
@@ -258,7 +257,7 @@ export async function discoverLenses(lensFilePath: string): Promise<LensEntry[]>
           }
 
           let base64Content: string;
-          
+
           if (enhanceFile) {
             console.log(`Enhancing lens ${jsonData.name} with JS file ${enhanceFile} (${enhanceSource})`);
             try {
@@ -293,9 +292,9 @@ export async function discoverLenses(lensFilePath: string): Promise<LensEntry[]>
                 path: filePath,
                 status: jsonData.status,
                 url: jsonData.url,
-                version: jsonData.version || 'unknown'
+                version: jsonData.version || 'unknown',
               };
-              
+
               if (enhanceFile) {
                 lensEntry.enhancedWithJs = enhanceFile;
               }
@@ -303,7 +302,7 @@ export async function discoverLenses(lensFilePath: string): Promise<LensEntry[]>
               if (enhanceSource) {
                 lensEntry.enhanceSource = enhanceSource;
               }
-              
+
               validLenses.push(lensEntry);
             }
           } catch (enhanceError: unknown) {
@@ -322,7 +321,7 @@ export async function discoverLenses(lensFilePath: string): Promise<LensEntry[]>
     return validLenses;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`Error discovering lenses:`, message);
+    console.error('Error discovering lenses:', message);
     throw error;
   }
 }
