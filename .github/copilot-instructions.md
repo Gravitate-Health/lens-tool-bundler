@@ -250,3 +250,147 @@ if lens-tool-bundler batch-test ./lenses; then
   lens-tool-bundler batch-upload ./lenses -d $FHIR_SERVER
 fi
 ```
+
+## Release Process
+
+**Pre-Release Checklist:**
+Before starting a release, ensure:
+- All changes are committed and pushed
+- Working directory is clean (`git status`)
+- On the correct branch (typically `main` or `master`)
+- Pull latest changes (`git pull`)
+
+**Release Steps:**
+
+1. **Lint the codebase**
+   ```bash
+   npm run lint
+   ```
+   Fix any linting errors before proceeding.
+
+2. **Security audit**
+   ```bash
+   npm audit
+   ```
+   - If vulnerabilities found: `npm audit fix` (review changes carefully)
+   - For high/critical issues: manually update dependencies and retest
+
+3. **Update lens-tool-test to latest version**
+   ```bash
+   npm update @gravitate-health/lens-tool-test
+   ```
+   Or check for latest and install explicitly:
+   ```bash
+   npm info @gravitate-health/lens-tool-test version
+   npm install @gravitate-health/lens-tool-test@latest --save-dev
+   ```
+
+4. **Build the project**
+   ```bash
+   npm run build
+   ```
+   Verify `dist/` directory is generated correctly.
+
+5. **Run tests**
+   ```bash
+   npm test
+   ```
+   All tests must pass before proceeding.
+
+6. **Update CHANGELOG.md**
+   - Document new features, bug fixes, and breaking changes
+   - Follow [Keep a Changelog](https://keepachangelog.com/) format
+   - Add release date
+
+7. **Version bump**
+   Choose bump type based on changes:
+   - `patch`: Bug fixes, minor changes (1.0.0 → 1.0.1)
+   - `minor`: New features, backwards compatible (1.0.0 → 1.1.0)
+   - `major`: Breaking changes (1.0.0 → 2.0.0)
+   
+   ```bash
+   npm version patch  # or minor, or major
+   ```
+   This automatically:
+   - Updates `package.json` version
+   - Creates a git commit with message "v<version>"
+   - Creates a git tag "v<version>"
+   - Runs `preversion`, `version`, and `postversion` scripts
+
+   **Manual alternative:**
+   ```bash
+   # If you need more control:
+   npm version patch --no-git-tag-version  # Update version only
+   git add package.json package-lock.json
+   git commit -m "chore: release v<version>"
+   git tag -a v<version> -m "Release v<version>"
+   ```
+
+8. **Push changes and tags**
+   ```bash
+   git push && git push --tags
+   ```
+   Or push to specific remote:
+   ```bash
+   git push origin main --follow-tags
+   ```
+
+9. **Verify npm authentication**
+   ```bash
+   npm whoami
+   ```
+   If not logged in:
+   ```bash
+   npm login
+   ```
+   Use your npm credentials. For scoped packages, ensure you have publish access.
+
+10. **Publish to npm**
+    ```bash
+    npm publish
+    ```
+    For scoped packages (e.g., `@gravitate-health/...`):
+    ```bash
+    npm publish --access public
+    ```
+
+11. **Post-publish verification**
+    ```bash
+    # Verify published version
+    npm info lens-tool-bundler version
+    
+    # Test installation in temp directory
+    cd $(mktemp -d)
+    npm install -g lens-tool-bundler@latest
+    lens-tool-bundler --version
+    ```
+
+**Quick Release Commands (when all checks pass):**
+```bash
+npm run lint && \
+npm audit && \
+npm update @gravitate-health/lens-tool-test && \
+npm run build && \
+npm test && \
+npm version patch && \
+git push --follow-tags && \
+npm publish
+```
+
+**Rollback a Release:**
+If a published version has critical issues:
+```bash
+# Deprecate the bad version (don't unpublish)
+npm deprecate lens-tool-bundler@<version> "Critical bug, use version X.Y.Z instead"
+
+# Publish a patch release with fixes
+npm version patch
+npm publish
+```
+
+**Common Issues:**
+
+- **`npm publish` fails with 403**: Check npm login and package access rights
+- **Git tag already exists**: Delete tag with `git tag -d v<version>` and `git push origin :refs/tags/v<version>`
+- **Tests fail after dependency update**: Review breaking changes in `@gravitate-health/lens-tool-test`
+- **Build errors**: Clean and rebuild with `rm -rf dist node_modules && npm install && npm run build`
