@@ -48,6 +48,9 @@ Thumbs.db
 # Coverage
 coverage/
 *.lcov
+
+# Test fixtures (dynamically created)
+test/fixtures/
 .nyc_output/
 
 # Temp
