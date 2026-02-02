@@ -1,7 +1,7 @@
 import {ComprehensiveResult, LensLibrary, runComprehensiveLensTests} from '@gravitate-health/lens-tool-test'
 import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'node:fs'
-import * as path from 'node:path'
+import path from 'node:path'
 import ora from 'ora'
 
 import * as dirController from '../controllers/dir-controller.js'
@@ -130,7 +130,6 @@ export default class BatchTest extends Command {
         changeSpinnerText(`Testing: ${lens.name}...`, spinner);
 
         try {
-          // eslint-disable-next-line no-await-in-loop
           const testResults: ComprehensiveResult[] = await runComprehensiveLensTests(lens.lens as LensLibrary);
 
           // Check if all tests passed

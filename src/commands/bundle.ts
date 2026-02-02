@@ -1,7 +1,7 @@
 import {Args, Command, Flags} from '@oclif/core'
 import inquirer from 'inquirer';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
+import path from 'node:path'
 import ora from 'ora'
 
 import {getFileData, writeBundleToFile} from '../controllers/file-controller.js';

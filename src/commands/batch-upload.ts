@@ -1,6 +1,6 @@
 import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'node:fs'
-import * as path from 'node:path'
+import path from 'node:path'
 import ora from 'ora'
 
 import * as dirController from '../controllers/dir-controller.js'
@@ -129,9 +129,9 @@ export default class BatchUpload extends Command {
           continue;
         }
 
-        // Check if lens already has valid content and skip-valid flag is set (unless force is true)
-        if (!force && skipValid && lens.hasBase64 // Check if it was enhanced or already had content
-        	&& !lens.enhancedWithJs) {
+        // Check if lens already has valid content and skip-valid flag is set
+        if (skipValid && lens.hasBase64 // Check if it was enhanced or already had content
+          && !lens.enhancedWithJs) {
           result.skipped++;
           result.details.push({
             action: 'skipped',
@@ -200,7 +200,6 @@ export default class BatchUpload extends Command {
           // Upload the lens
           changeSpinnerText(`Uploading ${fileName}...`, spinner);
           const lensJson = JSON.stringify(lens.lens, null, 2);
-          // eslint-disable-next-line no-await-in-loop
           const response = await uploadLenses(lensJson, domain);
 
           if (response.ok) {
@@ -213,7 +212,6 @@ export default class BatchUpload extends Command {
             });
             this.log(`✓ Uploaded: ${fileName}`);
           } else {
-            // eslint-disable-next-line no-await-in-loop
             const errorText = await response.text();
             result.errors++;
             result.processed++;

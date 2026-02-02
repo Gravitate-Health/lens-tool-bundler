@@ -1,5 +1,5 @@
 import {Args, Command, Flags} from '@oclif/core'
-import * as path from 'node:path'
+import path from 'node:path'
 
 import type {LensEntry} from '../controllers/dir-controller.js';
 

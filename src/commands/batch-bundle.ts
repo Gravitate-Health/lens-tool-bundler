@@ -1,6 +1,6 @@
 import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'node:fs'
-import * as path from 'node:path'
+import path from 'node:path'
 import ora from 'ora'
 
 import * as dirController from '../controllers/dir-controller.js'
@@ -125,7 +125,7 @@ export default class BatchBundle extends Command {
 
         // Check if lens already has valid content and skip-valid flag is set (unless force is true)
         if (!force && skipValid && lens.hasBase64 // Check if it was enhanced or already had content
-        	&& !lens.enhancedWithJs) {
+          && !lens.enhancedWithJs) {
           result.skipped++;
           result.details.push({
             action: 'skipped',

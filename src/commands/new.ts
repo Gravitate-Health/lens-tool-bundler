@@ -2,7 +2,7 @@ import {Args, Command, Flags} from '@oclif/core'
 import inquirer from 'inquirer';
 import {exec} from 'node:child_process'
 import * as fs from 'node:fs'
-import * as path from 'node:path'
+import path from 'node:path'
 import {promisify} from 'node:util'
 import ora from 'ora'
 
@@ -38,13 +38,9 @@ export default class New extends Command {
     spinner.start('Starting process...');
 
     try {
-      if (flags.template) {
-        // Use template repository cloning approach
-        await this.createFromTemplate(args.name, flags.default, flags.force, flags.fork);
-      } else {
-        // Original approach: fetch single file
-        await this.createSimpleLens(args.name, flags.default, flags.force);
-      }
+      await (flags.template
+        ? this.createFromTemplate(args.name, flags.default, flags.force, flags.fork)
+        : this.createSimpleLens(args.name, flags.default, flags.force));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       spinner.fail(`Error: ${message}`);
@@ -80,7 +76,7 @@ export default class New extends Command {
     // Check if current directory is empty - if so, use it instead of creating subdirectory
     const currentDirFiles = fs.readdirSync('.');
     const isCurrentDirEmpty = currentDirFiles.length === 0
-    	|| (currentDirFiles.length === 1 && currentDirFiles[0] === '.git');
+      || (currentDirFiles.length === 1 && currentDirFiles[0] === '.git');
 
     const targetDir = isCurrentDirEmpty ? '.' : targetDirName;
     const displayDir = isCurrentDirEmpty ? 'current directory' : targetDirName;
@@ -259,7 +255,7 @@ export default class New extends Command {
     }
   }
 
-  private displaySummary(targetDir: string, lensName: string): void {
+  private displaySummary(targetDir: string, _lensName: string): void {
     spinner.stopAndPersist({
       symbol: '⭐',
       text: 'Lens project created successfully!',
