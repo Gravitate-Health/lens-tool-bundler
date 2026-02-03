@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2026-02-03
+
+### Added
+- **Cross-Platform Encoding Support**: Automatic encoding detection and conversion for source JS files
+  - Added `chardet` dependency for automatic encoding detection (UTF-8, UTF-16LE, Windows-1252, Latin1, etc.)
+  - Added `iconv-lite` dependency for encoding conversion
+  - All FHIR Library bundles now store UTF-8 base64 content regardless of source file encoding
+  - `--source-encoding` flag added to `bundle`, `check`, `batch-bundle`, `batch-check`, and `batch-upload` commands
+  - Automatic BOM (Byte Order Mark) stripping from UTF-8 files
+  - Cross-platform integrity checks now pass when bundling on one OS (e.g., Mac UTF-16LE) and checking on another (e.g., Linux UTF-8)
+- **New Test Coverage**: 26 additional tests for encoding scenarios (109 total, up from 83)
+  - Unit tests for encoding detection, conversion, and BOM handling (`test/controllers/file-controller.test.ts`)
+  - Integration tests for cross-platform scenarios (`test/commands/encoding-integration.test.ts`)
+  - Unicode and emoji character handling tests
+- **New Helper Functions**: `readRawBase64FromLens()` test helper for raw base64 verification
+
+### Changed
+- Enhanced `file-controller.ts` with encoding-aware file reading functions:
+  - `getFileData(filePath, sourceEncoding?)`: Read with auto-detection or specified encoding
+  - `getFileDataWithEncoding(filePath, sourceEncoding?)`: Returns content and detected encoding
+  - `toBase64Utf8(content)`: Always produces UTF-8 base64 output
+  - `stripBom(content)`: Removes UTF-8 BOM markers
+  - `resolveEncoding(buffer, sourceEncoding?)`: Auto-detect or use specified encoding
+- Updated all bundling and checking operations to use encoding-aware functions
+- Updated README with encoding documentation and examples
+- Updated copilot-instructions.md with encoding feature details
+
+### Fixed
+- Import ordering to comply with ESLint `perfectionist/sort-imports` rules
+- Integrity check failures when source files use non-UTF-8 encodings
+
 ## [0.5.2] - 2026-02-01
 
 ### Fixed
