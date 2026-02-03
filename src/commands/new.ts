@@ -380,7 +380,7 @@ export default class New extends Command {
 
   private stringTobase64(str: string): string {
     try {
-      return Buffer.from(str, 'binary').toString('base64');
+      return Buffer.from(str, 'utf8').toString('base64');
     } catch (error) {
       console.log('Error converting string to base64:', error);
       throw error;
@@ -404,7 +404,7 @@ export default class New extends Command {
 
     // Read JS file and convert to base64
     const jsContent = fs.readFileSync(jsFilePath, 'utf8');
-    const base64Content = Buffer.from(jsContent, 'binary').toString('base64');
+    const base64Content = Buffer.from(jsContent, 'utf8').toString('base64');
 
     // Create FHIR Library from package.json
     const bundle = LensFhirResource.fromPackageJson(packageJson, base64Content);

@@ -190,7 +190,7 @@ export default class Bundle extends Command {
 
   private stringTobase64(str: string): string {
     try {
-      return Buffer.from(str, 'binary').toString('base64');
+      return Buffer.from(str, 'utf8').toString('base64');
     } catch (error) {
       console.log('Error converting string to base64:', error);
       throw error;

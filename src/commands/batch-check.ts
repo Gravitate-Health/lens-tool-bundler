@@ -112,7 +112,7 @@ export default class BatchCheck extends Command {
       }
 
       const jsContent = fs.readFileSync(jsFile, 'utf8');
-      const expectedBase64 = Buffer.from(jsContent, 'binary').toString('base64');
+      const expectedBase64 = Buffer.from(jsContent, 'utf8').toString('base64');
 
       // Check if bundle exists
       if (!fs.existsSync(jsonFile)) {

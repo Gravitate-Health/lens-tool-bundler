@@ -161,7 +161,7 @@ export default class BatchBundle extends Command {
 
           // Read the JS file and convert to base64
           const jsContent = fs.readFileSync(jsFile, 'utf8');
-          const base64Content = Buffer.from(jsContent, 'binary').toString('base64');
+          const base64Content = Buffer.from(jsContent, 'utf8').toString('base64');
 
           // Check if content needs update
           const content = lens.lens.content as Array<Record<string, unknown>> | undefined;

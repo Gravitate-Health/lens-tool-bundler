@@ -57,7 +57,7 @@ export default class Check extends Command {
     }
 
     const jsContent = getFileData(jsFile);
-    const expectedBase64 = Buffer.from(jsContent, 'binary').toString('base64');
+    const expectedBase64 = Buffer.from(jsContent, 'utf8').toString('base64');
 
     // Find bundle file
     let bundleFile: string;
