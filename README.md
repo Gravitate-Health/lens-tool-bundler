@@ -38,31 +38,15 @@ lens-tool-bundler upload mylens.json -d https://your-fhir-server.com/api/fhir
 ## Table of Contents
 
 <!-- toc -->
-* [Lens Tool Bundler](#lens-tool-bundler)
-* [Install globally](#install-globally)
-* [Create a new lens project](#create-a-new-lens-project)
-* [Bundle a lens](#bundle-a-lens)
-* [Test the lens](#test-the-lens)
-* [Upload to FHIR server](#upload-to-fhir-server)
+* [Features](#features)
+* [Quick Start](#quick-start)
+* [Contributing](#contributing)
+* [Support](#support)
+* [License](#license)
+* [Acknowledgments](#acknowledgments)
 * [Usage](#usage)
 * [Exit Codes](#exit-codes)
-* [Example: Fail CI pipeline if tests fail](#example-fail-ci-pipeline-if-tests-fail)
-* [Example: Check integrity and continue on success](#example-check-integrity-and-continue-on-success)
 * [Source Encoding](#source-encoding)
-* [Bundle a latin1-encoded source file](#bundle-a-latin1-encoded-source-file)
-* [Check integrity with a specific source encoding](#check-integrity-with-a-specific-source-encoding)
-* [Commands](#commands)
-<!-- tocstop -->
-* [Lens Tool Bundler](#lens-tool-bundler)
-* [Install globally](#install-globally)
-* [Create a new lens project](#create-a-new-lens-project)
-* [Bundle a lens](#bundle-a-lens)
-* [Test the lens](#test-the-lens)
-* [Upload to FHIR server](#upload-to-fhir-server)
-* [Usage](#usage)
-* [Exit Codes](#exit-codes)
-* [Example: Fail CI pipeline if tests fail](#example-fail-ci-pipeline-if-tests-fail)
-* [Example: Check integrity and continue on success](#example-check-integrity-and-continue-on-success)
 * [Commands](#commands)
 <!-- tocstop -->
 
@@ -115,18 +99,6 @@ $ lens-tool-bundler COMMAND
 running command...
 $ lens-tool-bundler (--version)
 @gravitate-health/lens-tool-bundler/0.5.3 win32-x64 node-v25.4.0
-$ lens-tool-bundler --help [COMMAND]
-USAGE
-  $ lens-tool-bundler COMMAND
-...
-```
-<!-- usagestop -->
-```sh-session
-$ npm install -g @gravitate-health/lens-tool-bundler
-$ lens-tool-bundler COMMAND
-running command...
-$ lens-tool-bundler (--version)
-@gravitate-health/lens-tool-bundler/0.5.2 linux-x64 node-v18.19.1
 $ lens-tool-bundler --help [COMMAND]
 USAGE
   $ lens-tool-bundler COMMAND
