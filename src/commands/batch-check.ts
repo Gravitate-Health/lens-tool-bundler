@@ -26,7 +26,7 @@ export default class BatchCheck extends Command {
     '<%= config.bin %> <%= command.id %> ./lenses',
     '<%= config.bin %> <%= command.id %> -q',
     '<%= config.bin %> <%= command.id %> --json',
-    '<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\\.draft\\.json$"',
+    String.raw`<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\.draft\.json$"`,
   ]
   static flags = {
     exclude: Flags.string({

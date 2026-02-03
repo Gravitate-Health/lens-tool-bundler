@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-02-03
+
+### Added
+- **File Exclusion System**: Comprehensive exclusion support for batch operations
+  - `DEFAULT_EXCLUSIONS`: Automatically excludes `node_modules/`, `package.json`, and `package-lock.json`
+  - `--exclude` flag now accepts multiple patterns via repeated usage (e.g., `--exclude "test.*" --exclude "draft"`)
+  - Directory exclusions prevent traversal for performance optimization
+  - Exclusion support added to all batch commands: `batch-bundle`, `batch-check`, `batch-test`, `batch-upload`
+  - New `isExcluded()` helper function for consistent exclusion checking
+- **Test Coverage**: 11 new tests for exclusion functionality
+  - Tests for `isExcluded()`, `DEFAULT_EXCLUSIONS`, and exclusion behavior in `findJsonFiles()` and `findEnhanceFiles()`
+  - All 121 tests passing
+
+### Changed
+- Updated `dir-controller.ts` with exclusion parameter support:
+  - `findJsonFiles(dir, exclusions)`: Excludes directories and files matching patterns
+  - `findEnhanceFiles(dir, exclusions)`: Excludes JS files before processing
+  - `discoverLenses(path, exclusions)`: Applies exclusions during lens discovery
+- Enhanced all batch commands to build exclusion lists from defaults + user patterns
+- Improved code quality by fixing ESLint `lonely-if` warnings using guard clauses
+- Updated README with "File Exclusions" section and examples
+- Updated copilot-instructions.md with exclusion feature documentation
+
+### Fixed
+- ESLint `unicorn/prefer-string-raw` errors in example strings with backslashes
+- ESLint `unicorn/no-lonely-if` warnings in directory traversal code
+
 ## [0.5.3] - 2026-02-03
 
 ### Added

@@ -35,7 +35,7 @@ export default class BatchBundle extends Command {
     '<%= config.bin %> <%= command.id %> ./lenses',
     '<%= config.bin %> <%= command.id %> ./lenses --skip-valid',
     '<%= config.bin %> <%= command.id %> ./lenses --skip-date',
-    '<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\\.draft\\.json$"',
+    String.raw`<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\.draft\.json$"`,
     '<%= config.bin %> <%= command.id %> ./lenses --exclude "node_modules"',
   ]
   static flags = {
