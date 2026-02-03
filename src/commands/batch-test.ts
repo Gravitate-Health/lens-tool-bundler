@@ -64,7 +64,7 @@ export default class BatchTest extends Command {
     const {args, flags} = await this.parse(BatchTest);
 
     const directory = path.resolve(args.directory);
-    const excludePattern = flags.exclude ? new RegExp(flags.exclude) : null;
+    const excludePatterns = flags.exclude || [];
     const failFast = flags['fail-fast'] || false;
     const verbose = flags.verbose || false;
 
@@ -78,7 +78,20 @@ export default class BatchTest extends Command {
       }
 
       changeSpinnerText('Discovering lenses...', spinner);
-      const lenses = await dirController.discoverLenses(directory);
+
+      // Build exclusion list: start with defaults, add user-provided patterns
+      const exclusions = [...dirController.DEFAULT_EXCLUSIONS];
+      for (const pattern of excludePatterns) {
+        try {
+          exclusions.push(new RegExp(pattern));
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          spinner.fail(`Invalid exclude regex "${pattern}": ${message}`);
+          this.error('Invalid regex pattern', {exit: 1});
+        }
+      }
+
+      const lenses = await dirController.discoverLenses(directory, exclusions);
 
       stopAndPersistSpinner(`Found ${lenses.length} lens(es)`, spinner);
 
@@ -95,37 +108,9 @@ export default class BatchTest extends Command {
         total: lenses.length,
       };
 
-      // Build exclude regex if provided
-      let excludeRegex: null | RegExp = null;
-      if (excludePattern) {
-        try {
-          excludeRegex = new RegExp(excludePattern.source);
-        } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : String(error);
-          spinner.fail(`Invalid exclude regex: ${message}`);
-          this.error('Invalid regex pattern', {exit: 1});
-        }
-      }
-
       // Test each lens
       for (const lens of lenses) {
         const fileName = path.basename(lens.path);
-
-        // Check if file should be excluded
-        if (excludeRegex && excludeRegex.test(fileName)) {
-          result.skipped++;
-          result.details.push({
-            errors: [],
-            failed: 0,
-            file: lens.path,
-            lensName: lens.name,
-            passed: 0,
-            skipped: 1,
-            status: 'skipped',
-          });
-          this.log(`⊘ Skipped: ${fileName} (matched exclude pattern)`);
-          continue;
-        }
 
         changeSpinnerText(`Testing: ${lens.name}...`, spinner);
 

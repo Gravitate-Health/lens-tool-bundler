@@ -71,7 +71,14 @@ Commands like [batch-bundle.ts](../src/commands/batch-bundle.ts) use these flags
 - `--skip-valid (-s)`: Skip lenses with valid base64 (unless content changed)
 - `--skip-date (-d)`: Don't update date field on bundling
 - `--force (-f)`: Rebundle even if content unchanged
-- `--exclude (-e)`: Regex to exclude files by filename
+- `--exclude (-e)`: Regex to exclude files/directories (can be used multiple times)
+
+**File Exclusions:**
+- Default exclusions: `node_modules/`, `package.json`, `package-lock.json`
+- Exclusion patterns apply to both files and directories
+- Excluded directories are not traversed (performance optimization)
+- Multiple `--exclude` flags can be provided for complex filtering
+- Example: `batch-bundle ./lenses --exclude "test.*" --exclude ".*\\.draft\\.json$"`
 
 ### FHIR Resource Construction
 [LensFhirResource](../src/models/lens-fhir-resource.ts) has three factory methods:

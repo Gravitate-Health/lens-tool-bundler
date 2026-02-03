@@ -26,8 +26,15 @@ export default class BatchCheck extends Command {
     '<%= config.bin %> <%= command.id %> ./lenses',
     '<%= config.bin %> <%= command.id %> -q',
     '<%= config.bin %> <%= command.id %> --json',
+    '<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\\.draft\\.json$"',
   ]
   static flags = {
+    exclude: Flags.string({
+      char: 'e',
+      description: 'regex pattern to exclude files/directories (can be used multiple times)',
+      multiple: true,
+      required: false,
+    }),
     json: Flags.boolean({
       char: 'j',
       description: 'output results as JSON',
@@ -45,9 +52,25 @@ export default class BatchCheck extends Command {
     const {args, flags} = await this.parse(BatchCheck);
 
     const directory = path.resolve(args.directory);
+    const excludePatterns = flags.exclude || [];
 
     try {
-      const enhanceFiles = dirController.findEnhanceFiles(directory);
+      // Build exclusion list: start with defaults, add user-provided patterns
+      const exclusions = [...dirController.DEFAULT_EXCLUSIONS];
+      for (const pattern of excludePatterns) {
+        try {
+          exclusions.push(new RegExp(pattern));
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (!flags.quiet && !flags.json) {
+            this.error(`Invalid exclude regex "${pattern}": ${message}`, {exit: 1});
+          }
+
+          return;
+        }
+      }
+
+      const enhanceFiles = dirController.findEnhanceFiles(directory, exclusions);
 
       // Collect all JS files with their corresponding JSON files
       const filePairs: Array<{jsFile: string; jsonFile: string}> = [];

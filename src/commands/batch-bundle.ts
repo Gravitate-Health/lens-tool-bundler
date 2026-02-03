@@ -35,12 +35,14 @@ export default class BatchBundle extends Command {
     '<%= config.bin %> <%= command.id %> ./lenses',
     '<%= config.bin %> <%= command.id %> ./lenses --skip-valid',
     '<%= config.bin %> <%= command.id %> ./lenses --skip-date',
-    '<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*"',
+    '<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\\.draft\\.json$"',
+    '<%= config.bin %> <%= command.id %> ./lenses --exclude "node_modules"',
   ]
   static flags = {
     exclude: Flags.string({
       char: 'e',
-      description: 'regex pattern to exclude files (applied to filename)',
+      description: 'regex pattern to exclude files/directories (can be used multiple times)',
+      multiple: true,
       required: false,
     }),
     force: Flags.boolean({
@@ -67,7 +69,7 @@ export default class BatchBundle extends Command {
     const directory = path.resolve(args.directory);
     const skipValid = flags['skip-valid'] || false;
     const skipDate = flags['skip-date'] || false;
-    const excludePattern = flags.exclude ? new RegExp(flags.exclude) : null;
+    const excludePatterns = flags.exclude || [];
     const force = flags.force || false;
     const sourceEncoding = flags['source-encoding'];
 
@@ -81,8 +83,21 @@ export default class BatchBundle extends Command {
       }
 
       changeSpinnerText('Discovering lenses...', spinner);
-      const lenses = await dirController.discoverLenses(directory);
-      const enhanceFiles = dirController.findEnhanceFiles(directory);
+
+      // Build exclusion list: start with defaults, add user-provided patterns
+      const exclusions = [...dirController.DEFAULT_EXCLUSIONS];
+      for (const pattern of excludePatterns) {
+        try {
+          exclusions.push(new RegExp(pattern));
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          spinner.fail(`Invalid exclude regex "${pattern}": ${message}`);
+          this.error(`Invalid exclude regex: ${message}`, {exit: 1});
+        }
+      }
+
+      const lenses = await dirController.discoverLenses(directory, exclusions);
+      const enhanceFiles = dirController.findEnhanceFiles(directory, exclusions);
 
       stopAndPersistSpinner(`Found ${lenses.length} lens(es)`, spinner);
 
@@ -99,32 +114,9 @@ export default class BatchBundle extends Command {
         updated: 0,
       };
 
-      // Build exclude regex if provided
-      let excludeRegex: null | RegExp = null;
-      if (excludePattern) {
-        try {
-          excludeRegex = new RegExp(excludePattern.source);
-        } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : String(error);
-          spinner.fail(`Invalid exclude regex: ${message}`);
-          return;
-        }
-      }
-
       // Process each lens
       for (const lens of lenses) {
         const fileName = path.basename(lens.path);
-
-        // Check if file should be excluded
-        if (excludeRegex && excludeRegex.test(fileName)) {
-          result.skipped++;
-          result.details.push({
-            action: 'skipped',
-            file: lens.path,
-            reason: 'Matched exclude pattern',
-          });
-          continue;
-        }
 
         // Check if lens already has valid content and skip-valid flag is set (unless force is true)
         if (!force && skipValid && lens.hasBase64 // Check if it was enhanced or already had content

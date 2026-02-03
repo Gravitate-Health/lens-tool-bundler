@@ -76,11 +76,31 @@ export function validateFHIRLens(lens: Record<string, unknown>): ValidationResul
 }
 
 /**
+ * Default exclusion patterns for files and directories
+ */
+export const DEFAULT_EXCLUSIONS = [
+  /node_modules/,
+  /package\.json$/,
+  /package-lock\.json$/,
+];
+
+/**
+ * Check if path matches any exclusion pattern
+ * @param pathToCheck - The path to check
+ * @param exclusions - Array of RegExp patterns
+ * @returns True if path matches any exclusion
+ */
+export function isExcluded(pathToCheck: string, exclusions: RegExp[]): boolean {
+  return exclusions.some(pattern => pattern.test(pathToCheck));
+}
+
+/**
  * Recursively find all JSON files in a directory
  * @param dir - The directory to search
+ * @param exclusions - Array of RegExp patterns to exclude (defaults to DEFAULT_EXCLUSIONS)
  * @returns Array of JSON file paths
  */
-export function findJsonFiles(dir: string): string[] {
+export function findJsonFiles(dir: string, exclusions: RegExp[] = DEFAULT_EXCLUSIONS): string[] {
   const jsonFiles: string[] = [];
 
   function traverse(currentDir: string): void {
@@ -88,11 +108,22 @@ export function findJsonFiles(dir: string): string[] {
 
     for (const file of files) {
       const filePath = path.join(currentDir, file);
+      const relativePath = path.relative(dir, filePath);
       const stat = fs.statSync(filePath);
 
       if (stat.isDirectory()) {
+        // Skip excluded directories
+        if (isExcluded(relativePath, exclusions) || isExcluded(file, exclusions)) {
+          continue;
+        }
+
         traverse(filePath);
       } else if (path.extname(file) === '.json') {
+        // Skip excluded files
+        if (isExcluded(relativePath, exclusions) || isExcluded(file, exclusions)) {
+          continue;
+        }
+
         jsonFiles.push(filePath);
       }
     }
@@ -105,9 +136,10 @@ export function findJsonFiles(dir: string): string[] {
 /**
  * Find JavaScript files with an enhance function
  * @param dir - The directory to search
+ * @param exclusions - Array of RegExp patterns to exclude (defaults to DEFAULT_EXCLUSIONS)
  * @returns EnhanceFiles object with exact and fallback matches
  */
-export function findEnhanceFiles(dir: string): EnhanceFiles {
+export function findEnhanceFiles(dir: string, exclusions: RegExp[] = DEFAULT_EXCLUSIONS): EnhanceFiles {
   const enhanceFiles: EnhanceFiles = {
     exact: {},      // Map of JSON file path to matching JS file path
     fallback: {},    // Map of directory to array of JS file paths with enhance functions
@@ -119,11 +151,20 @@ export function findEnhanceFiles(dir: string): EnhanceFiles {
 
     for (const file of files) {
       const filePath = path.join(currentDir, file);
+      const relativePath = path.relative(dir, filePath);
       const stat = fs.statSync(filePath);
 
       if (stat.isDirectory()) {
-        traverse(filePath);
+        // Skip excluded directories
+        if (!isExcluded(relativePath, exclusions) && !isExcluded(file, exclusions)) {
+          traverse(filePath);
+        }
       } else if (path.extname(file) === '.js') {
+        // Skip excluded files
+        if (isExcluded(relativePath, exclusions) || isExcluded(file, exclusions)) {
+          continue;
+        }
+
         try {
           const content = getFileData(filePath);
           // Check if the file contains an enhance function using regex
@@ -212,12 +253,13 @@ function isLensMissingBase64Content(jsonData: Record<string, unknown>): boolean 
 /**
  * Discover and validate lenses from a folder
  * @param lensFilePath - Path to lens file or directory
+ * @param exclusions - Array of RegExp patterns to exclude (defaults to DEFAULT_EXCLUSIONS)
  * @returns Promise resolving to array of LensEntry objects
  */
-export async function discoverLenses(lensFilePath: string): Promise<LensEntry[]> {
+export async function discoverLenses(lensFilePath: string, exclusions: RegExp[] = DEFAULT_EXCLUSIONS): Promise<LensEntry[]> {
   try {
-    const lensFiles = findJsonFiles(lensFilePath);
-    const enhanceFiles = findEnhanceFiles(lensFilePath);
+    const lensFiles = findJsonFiles(lensFilePath, exclusions);
+    const enhanceFiles = findEnhanceFiles(lensFilePath, exclusions);
 
     const validLenses: LensEntry[] = [];
 

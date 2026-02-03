@@ -248,4 +248,168 @@ describe('dir-controller', () => {
       expect(hasNoEnhance).to.be.false
     })
   })
+
+  describe('exclusion functionality', () => {
+    describe('isExcluded', () => {
+      it('should return true for paths matching exclusion patterns', () => {
+        const exclusions = [/node_modules/, /\.test\./]
+        
+        expect(dirController.isExcluded('node_modules', exclusions)).to.be.true
+        expect(dirController.isExcluded('src/node_modules', exclusions)).to.be.true
+        expect(dirController.isExcluded('file.test.js', exclusions)).to.be.true
+      })
+
+      it('should return false for paths not matching exclusion patterns', () => {
+        const exclusions = [/node_modules/, /\.test\./]
+        
+        expect(dirController.isExcluded('src/index.js', exclusions)).to.be.false
+        expect(dirController.isExcluded('package.json', exclusions)).to.be.false
+      })
+
+      it('should handle empty exclusion list', () => {
+        expect(dirController.isExcluded('anything', [])).to.be.false
+      })
+    })
+
+    describe('DEFAULT_EXCLUSIONS', () => {
+      it('should include node_modules', () => {
+        expect(dirController.DEFAULT_EXCLUSIONS.some(p => p.test('node_modules'))).to.be.true
+      })
+
+      it('should include package.json', () => {
+        expect(dirController.DEFAULT_EXCLUSIONS.some(p => p.test('package.json'))).to.be.true
+      })
+
+      it('should include package-lock.json', () => {
+        expect(dirController.DEFAULT_EXCLUSIONS.some(p => p.test('package-lock.json'))).to.be.true
+      })
+    })
+
+    describe('findJsonFiles with exclusions', () => {
+      const testDir = path.join(process.cwd(), 'test', 'fixtures', 'exclusion-test')
+
+      before(() => {
+        // Create test directory structure
+        if (!fs.existsSync(testDir)) {
+          fs.mkdirSync(testDir, {recursive: true})
+        }
+
+        fs.writeFileSync(path.join(testDir, 'lens.json'), '{}')
+        fs.writeFileSync(path.join(testDir, 'test.json'), '{}')
+        fs.writeFileSync(path.join(testDir, 'draft.json'), '{}')
+        fs.writeFileSync(path.join(testDir, 'package.json'), '{}')
+
+        // Create node_modules directory that should be excluded
+        const nodeModules = path.join(testDir, 'node_modules')
+        if (!fs.existsSync(nodeModules)) {
+          fs.mkdirSync(nodeModules)
+        }
+        fs.writeFileSync(path.join(nodeModules, 'should-not-appear.json'), '{}')
+
+        // Create test directory that should be excluded
+        const testSubDir = path.join(testDir, 'test')
+        if (!fs.existsSync(testSubDir)) {
+          fs.mkdirSync(testSubDir)
+        }
+        fs.writeFileSync(path.join(testSubDir, 'test-lens.json'), '{}')
+      })
+
+      after(() => {
+        // Clean up test directory
+        if (fs.existsSync(testDir)) {
+          fs.rmSync(testDir, {force: true, recursive: true})
+        }
+      })
+
+      it('should exclude files matching default exclusions', () => {
+        const jsonFiles = dirController.findJsonFiles(testDir)
+
+        expect(jsonFiles.some(f => f.includes('package.json'))).to.be.false
+        expect(jsonFiles.some(f => f.includes('node_modules'))).to.be.false
+      })
+
+      it('should exclude directories matching patterns', () => {
+        const jsonFiles = dirController.findJsonFiles(testDir)
+
+        expect(jsonFiles.some(f => f.includes('should-not-appear.json'))).to.be.false
+      })
+
+      it('should support custom exclusion patterns', () => {
+        const exclusions = [...dirController.DEFAULT_EXCLUSIONS, /test/, /draft/]
+        const jsonFiles = dirController.findJsonFiles(testDir, exclusions)
+
+        expect(jsonFiles.some(f => f.includes('test.json'))).to.be.false
+        expect(jsonFiles.some(f => f.includes('draft.json'))).to.be.false
+        expect(jsonFiles.some(f => f.includes('test-lens.json'))).to.be.false
+        expect(jsonFiles.some(f => f.includes('lens.json'))).to.be.true
+      })
+
+      it('should support multiple custom exclusions', () => {
+        const exclusions = [
+          ...dirController.DEFAULT_EXCLUSIONS,
+          /.*\.test\./,
+          /.*\.draft\./,
+          /^archive/
+        ]
+        const jsonFiles = dirController.findJsonFiles(testDir, exclusions)
+
+        // Should still find lens.json
+        expect(jsonFiles.some(f => f.includes('lens.json'))).to.be.true
+      })
+    })
+
+    describe('findEnhanceFiles with exclusions', () => {
+      const testDir = path.join(process.cwd(), 'test', 'fixtures', 'enhance-exclusion-test')
+
+      before(() => {
+        // Create test directory structure
+        if (!fs.existsSync(testDir)) {
+          fs.mkdirSync(testDir, {recursive: true})
+        }
+
+        fs.writeFileSync(
+          path.join(testDir, 'lens.js'),
+          `function enhance(content) { return content; }`,
+        )
+
+        fs.writeFileSync(
+          path.join(testDir, 'test.enhance.js'),
+          `function enhance(content) { return content; }`,
+        )
+
+        // Create node_modules with enhance file
+        const nodeModules = path.join(testDir, 'node_modules')
+        if (!fs.existsSync(nodeModules)) {
+          fs.mkdirSync(nodeModules)
+        }
+        fs.writeFileSync(
+          path.join(nodeModules, 'lib.js'),
+          `function enhance(content) { return content; }`,
+        )
+      })
+
+      after(() => {
+        // Clean up test directory
+        if (fs.existsSync(testDir)) {
+          fs.rmSync(testDir, {force: true, recursive: true})
+        }
+      })
+
+      it('should exclude files in node_modules by default', () => {
+        const enhanceFiles = dirController.findEnhanceFiles(testDir)
+        const nodeModulesPath = path.join(testDir, 'node_modules')
+
+        expect(enhanceFiles.fallback[nodeModulesPath]).to.be.undefined
+      })
+
+      it('should support custom exclusion patterns', () => {
+        const exclusions = [...dirController.DEFAULT_EXCLUSIONS, /test\.enhance/]
+        const enhanceFiles = dirController.findEnhanceFiles(testDir, exclusions)
+
+        expect(enhanceFiles.fallback[testDir]).to.be.an('array')
+        expect(enhanceFiles.fallback[testDir].some(f => f.includes('test.enhance.js'))).to.be.false
+        expect(enhanceFiles.fallback[testDir].some(f => f.includes('lens.js'))).to.be.true
+      })
+    })
+  })
 })
