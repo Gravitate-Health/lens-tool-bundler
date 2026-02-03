@@ -2,7 +2,7 @@ import {Args, Command, Flags} from '@oclif/core'
 import * as fs from 'node:fs';
 import path from 'node:path';
 
-import {getFileData} from '../controllers/file-controller.js';
+import {getFileData, toBase64Utf8} from '../controllers/file-controller.js';
 
 export default class Check extends Command {
   static args = {
@@ -18,13 +18,14 @@ export default class Check extends Command {
     bundle: Flags.string({char: 'b', description: 'path to the bundle file to check', required: false}),
     name: Flags.string({char: 'n', description: 'name of the bundle to check (without .json extension)', required: false}),
     quiet: Flags.boolean({char: 'q', description: 'suppress output, only return exit code', required: false}),
+    'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
   }
 
   public async run(): Promise<void> {
     const {args, flags} = await this.parse(Check);
 
     try {
-      const result = await this.checkIntegrity(args.file, flags.name, flags.bundle, flags.quiet);
+      const result = await this.checkIntegrity(args.file, flags.name, flags.bundle, flags.quiet, flags['source-encoding']);
 
       if (!result.success) {
         this.exit(1);
@@ -48,6 +49,7 @@ export default class Check extends Command {
     bundleName?: string,
     bundlePath?: string,
     quiet?: boolean,
+    sourceEncoding?: string,
   ): Promise<{message: string; success: boolean;}> {
     // Read JavaScript file
     if (!fs.existsSync(jsFile)) {
@@ -56,8 +58,8 @@ export default class Check extends Command {
       return {message, success: false};
     }
 
-    const jsContent = getFileData(jsFile);
-    const expectedBase64 = Buffer.from(jsContent, 'binary').toString('base64');
+    const jsContent = getFileData(jsFile, sourceEncoding);
+    const expectedBase64 = toBase64Utf8(jsContent);
 
     // Find bundle file
     let bundleFile: string;

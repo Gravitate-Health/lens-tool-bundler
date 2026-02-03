@@ -74,7 +74,9 @@
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "3.1.0",
+    "chardet": "^2.1.0",
     "fast-xml-parser": "^5.3.4",
+    "iconv-lite": "^0.6.3",
     "inquirer": "^9.2.23",
     "ora": "^8.0.1"
   },

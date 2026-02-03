@@ -6,6 +6,7 @@ import path from 'node:path'
 import {promisify} from 'node:util'
 import ora from 'ora'
 
+import {getFileData, toBase64Utf8} from '../controllers/file-controller.js'
 import {changeSpinnerText, stopAndPersistSpinner} from '../controllers/spinner-controller.js'
 import {LensFhirResource} from '../models/lens-fhir-resource.js'
 
@@ -380,7 +381,7 @@ export default class New extends Command {
 
   private stringTobase64(str: string): string {
     try {
-      return Buffer.from(str, 'binary').toString('base64');
+      return toBase64Utf8(str);
     } catch (error) {
       console.log('Error converting string to base64:', error);
       throw error;
@@ -403,8 +404,8 @@ export default class New extends Command {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
     // Read JS file and convert to base64
-    const jsContent = fs.readFileSync(jsFilePath, 'utf8');
-    const base64Content = Buffer.from(jsContent, 'binary').toString('base64');
+    const jsContent = getFileData(jsFilePath);
+    const base64Content = toBase64Utf8(jsContent);
 
     // Create FHIR Library from package.json
     const bundle = LensFhirResource.fromPackageJson(packageJson, base64Content);

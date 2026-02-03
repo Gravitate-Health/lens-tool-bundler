@@ -4,6 +4,7 @@ import path from 'node:path'
 import ora from 'ora'
 
 import * as dirController from '../controllers/dir-controller.js'
+import {getFileData, toBase64Utf8} from '../controllers/file-controller.js'
 import {changeSpinnerText, stopAndPersistSpinner} from '../controllers/spinner-controller.js'
 import {uploadLenses} from '../controllers/upload-controller.js'
 
@@ -62,6 +63,7 @@ export default class BatchUpload extends Command {
       description: 'skip lenses that already have valid base64 content',
       required: false,
     }),
+    'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
   }
 
   public async run(): Promise<void> {
@@ -73,6 +75,7 @@ export default class BatchUpload extends Command {
     const excludePattern = flags.exclude ? new RegExp(flags.exclude) : null;
     const force = flags.force || false;
     const {domain} = flags;
+    const sourceEncoding = flags['source-encoding'];
 
     spinner.start('Starting batch upload process...');
 
@@ -166,8 +169,8 @@ export default class BatchUpload extends Command {
           }
 
           // Read the JS file and convert to base64
-          const jsContent = fs.readFileSync(jsFile, 'utf8');
-          const base64Content = Buffer.from(jsContent, 'binary').toString('base64');
+          const jsContent = getFileData(jsFile, sourceEncoding);
+          const base64Content = toBase64Utf8(jsContent);
 
           // Check if content needs update
           const content = lens.lens.content as Array<Record<string, unknown>> | undefined;

@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import path from 'node:path'
 import ora from 'ora'
 
-import {getFileData, writeBundleToFile} from '../controllers/file-controller.js';
+import {getFileData, toBase64Utf8, writeBundleToFile} from '../controllers/file-controller.js';
 import {changeSpinnerText, stopAndPersistSpinner} from '../controllers/spinner-controller.js'
 import {LensFhirResource} from '../models/lens-fhir-resource.js'
 
@@ -20,12 +20,14 @@ export default class Bundle extends Command {
     '<%= config.bin %> <%= command.id %> lens.js -n my-lens -d',
     '<%= config.bin %> <%= command.id %> lens.js -p',
     '<%= config.bin %> <%= command.id %> lens.js -u',
+    '<%= config.bin %> <%= command.id %> lens.js -n my-lens --source-encoding windows-1252',
   ]
   static flags = {
     // flag with no value (-f, --force)
     default: Flags.boolean({char: 'd', description: 'use default values for the bundle', required: false}),
     name: Flags.string({char: 'n', description: 'name to apply to lens', required: false}),
     'package-json': Flags.boolean({char: 'p', description: 'use values from package.json to populate FHIR library', required: false}),
+    'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
     update: Flags.boolean({char: 'u', description: 'update existing bundle file (content and date only)', required: false}),
   }
 
@@ -49,13 +51,13 @@ export default class Bundle extends Command {
 
     try {
       if (flags.update) {
-        await this.updateExistingBundle(args.file, flags.name, flags['package-json']);
+        await this.updateExistingBundle(args.file, flags.name, flags['package-json'], flags['source-encoding']);
       } else if (flags['package-json']) {
-        await this.bundleLensesFromPackageJson(args.file);
+        await this.bundleLensesFromPackageJson(args.file, flags['source-encoding']);
       } else if (flags.default) {
-        await this.bundleLensesDefaultInformaton(args.file, flags.name!);
+        await this.bundleLensesDefaultInformaton(args.file, flags.name!, flags['source-encoding']);
       } else {
-        await this.bundleLensesInteractive(args.file, flags.name!);
+        await this.bundleLensesInteractive(args.file, flags.name!, flags['source-encoding']);
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -64,13 +66,13 @@ export default class Bundle extends Command {
     }
   }
 
-  private bundleLensesDefaultInformaton(file: string, name: string): void {
+  private bundleLensesDefaultInformaton(file: string, name: string, sourceEncoding?: string): void {
     changeSpinnerText('Bundling lenses with default information', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
-    const fileData = getFileData(file);
+    const fileData = getFileData(file, sourceEncoding);
     stopAndPersistSpinner('File data retrieved', spinner);
     changeSpinnerText('Converting file data to base64...', spinner);
-    const base64FileData = this.stringTobase64(fileData);
+    const base64FileData = toBase64Utf8(fileData);
     stopAndPersistSpinner('File data converted to base64', spinner);
     changeSpinnerText(`Making bundle with name: ${name}`, spinner);
     const bundle = LensFhirResource.defaultValues(name, base64FileData);
@@ -84,7 +86,7 @@ export default class Bundle extends Command {
     });
   }
 
-  private bundleLensesFromPackageJson(file: string): void {
+  private bundleLensesFromPackageJson(file: string, sourceEncoding?: string): void {
     changeSpinnerText('Reading package.json...', spinner);
     const packageJson = this.readPackageJson();
 
@@ -95,10 +97,10 @@ export default class Bundle extends Command {
     stopAndPersistSpinner('package.json read successfully', spinner);
     changeSpinnerText('Bundling lenses with package.json values', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
-    const fileData = getFileData(file);
+    const fileData = getFileData(file, sourceEncoding);
     stopAndPersistSpinner('File data retrieved', spinner);
     changeSpinnerText('Converting file data to base64...', spinner);
-    const base64FileData = this.stringTobase64(fileData);
+    const base64FileData = toBase64Utf8(fileData);
     stopAndPersistSpinner('File data converted to base64', spinner);
     changeSpinnerText(`Making bundle with name: ${packageJson.name}`, spinner);
     const bundle = LensFhirResource.fromPackageJson(packageJson, base64FileData);
@@ -112,13 +114,13 @@ export default class Bundle extends Command {
     });
   }
 
-  private bundleLensesInteractive(file: string, name: string): void {
+  private bundleLensesInteractive(file: string, name: string, sourceEncoding?: string): void {
     changeSpinnerText('Bundling lenses', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
-    const fileData = getFileData(file);
+    const fileData = getFileData(file, sourceEncoding);
     stopAndPersistSpinner('File data retrieved', spinner);
     changeSpinnerText('Converting file data to base64...', spinner);
-    const base64FileData = this.stringTobase64(fileData);
+    const base64FileData = toBase64Utf8(fileData);
     stopAndPersistSpinner('File data converted to base64', spinner);
 
     inquirer.prompt([
@@ -188,16 +190,7 @@ export default class Bundle extends Command {
     }
   }
 
-  private stringTobase64(str: string): string {
-    try {
-      return Buffer.from(str, 'binary').toString('base64');
-    } catch (error) {
-      console.log('Error converting string to base64:', error);
-      throw error;
-    }
-  }
-
-  private updateExistingBundle(file: string, name?: string, usePackageJson?: boolean): void {
+  private updateExistingBundle(file: string, name?: string, usePackageJson?: boolean, sourceEncoding?: string): void {
     // Determine the name from flags or try to find existing bundle
     let bundleName: string | undefined;
     let bundleFileName: string | undefined;
@@ -246,10 +239,10 @@ export default class Bundle extends Command {
 
     changeSpinnerText('Updating existing bundle', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
-    const fileData = getFileData(file);
+    const fileData = getFileData(file, sourceEncoding);
     stopAndPersistSpinner('File data retrieved', spinner);
     changeSpinnerText('Converting file data to base64...', spinner);
-    const base64FileData = this.stringTobase64(fileData);
+    const base64FileData = toBase64Utf8(fileData);
     stopAndPersistSpinner('File data converted to base64', spinner);
     changeSpinnerText(`Updating bundle: ${bundleName}`, spinner);
 

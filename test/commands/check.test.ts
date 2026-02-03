@@ -47,6 +47,32 @@ describe('check command', () => {
       }
     });
 
+    it('should pass when source encoding is specified', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'latin1-lens.js');
+        const jsonFile = path.join(context.testDir, 'latin1-lens.json');
+
+        const jsContent = 'function enhance(epi) { const msg = "Héllo"; return epi; }';
+        const latin1Buffer = Buffer.from(jsContent, 'latin1');
+        fs.writeFileSync(jsFile, latin1Buffer);
+
+        const base64Content = Buffer.from(jsContent, 'utf8').toString('base64');
+        createMockLensFile(jsonFile, 'Latin1Lens', true);
+
+        const lensData = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        lensData.content[0].data = base64Content;
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        await runCommand(['check', jsFile, '--source-encoding', 'latin1']);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
     it('should detect matching content regardless of formatting', async () => {
       const originalCwd = process.cwd();
 

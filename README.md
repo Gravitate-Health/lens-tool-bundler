@@ -135,6 +135,18 @@ if lens-tool-bundler check mylens.js; then
 fi
 ```
 
+# Source Encoding
+
+Lens source files are decoded to Unicode before being stored as UTF-8 in the FHIR Library content. If a source file uses a non-UTF-8 encoding, pass `--source-encoding` to ensure consistent base64 content:
+
+```bash
+# Bundle a latin1-encoded source file
+lens-tool-bundler bundle mylens.js -n MyLens --source-encoding latin1
+
+# Check integrity with a specific source encoding
+lens-tool-bundler check mylens.js --source-encoding windows-1252
+```
+
 # Commands
 <!-- commands -->
 * [`lens-tool-bundler batch-bundle [DIRECTORY]`](#lens-tool-bundler-batch-bundle-directory)
@@ -165,7 +177,7 @@ Batch process and bundle multiple lenses in a directory.
 
 ```
 USAGE
-  $ lens-tool-bundler batch-bundle [DIRECTORY] [-e <value>] [-f] [-d] [-s]
+  $ lens-tool-bundler batch-bundle [DIRECTORY] [-e <value>] [-f] [-d] [-s] [--source-encoding <value>]
 
 ARGUMENTS
   [DIRECTORY]  [default: .] directory containing lenses to bundle
@@ -175,6 +187,7 @@ FLAGS
   -e, --exclude=<value>  regex pattern to exclude files (applied to filename)
   -f, --force            force bundle all lenses even if content is up to date
   -s, --skip-valid       skip lenses that already have valid base64 content
+  --source-encoding=<value>  source file encoding (auto-detected if omitted)
 
 DESCRIPTION
   Batch process and bundle multiple lenses in a directory.
@@ -199,7 +212,7 @@ Batch check integrity between all lens JavaScript files and their FHIR Library b
 
 ```
 USAGE
-  $ lens-tool-bundler batch-check [DIRECTORY] [-j] [-q]
+  $ lens-tool-bundler batch-check [DIRECTORY] [-j] [-q] [--source-encoding <value>]
 
 ARGUMENTS
   [DIRECTORY]  [default: .] directory to search for lens files
@@ -207,6 +220,7 @@ ARGUMENTS
 FLAGS
   -j, --json   output results as JSON
   -q, --quiet  suppress output, only return exit code
+  --source-encoding=<value>  source file encoding (auto-detected if omitted)
 
 DESCRIPTION
   Batch check integrity between all lens JavaScript files and their FHIR Library bundles.
@@ -260,7 +274,7 @@ Batch process and upload multiple lenses to a FHIR server.
 
 ```
 USAGE
-  $ lens-tool-bundler batch-upload [DIRECTORY] -d <value> [-e <value>] [-f] [-t] [-s]
+  $ lens-tool-bundler batch-upload [DIRECTORY] -d <value> [-e <value>] [-f] [-t] [-s] [--source-encoding <value>]
 
 ARGUMENTS
   [DIRECTORY]  [default: .] directory containing lenses to upload
@@ -271,6 +285,7 @@ FLAGS
   -f, --force            force bundle all lenses even if content is up to date
   -s, --skip-valid       skip lenses that already have valid base64 content
   -t, --skip-date        do not update the date field when bundling
+  --source-encoding=<value>  source file encoding (auto-detected if omitted)
 
 DESCRIPTION
   Batch process and upload multiple lenses to a FHIR server.
@@ -293,7 +308,7 @@ Bundles raw lenses into a FHIR compliant single file.
 
 ```
 USAGE
-  $ lens-tool-bundler bundle FILE [-d] [-n <value>] [-p] [-u]
+  $ lens-tool-bundler bundle FILE [-d] [-n <value>] [-p] [-u] [--source-encoding <value>]
 
 ARGUMENTS
   FILE  file to read
@@ -303,6 +318,7 @@ FLAGS
   -n, --name=<value>  name to apply to lens
   -p, --package-json  use values from package.json to populate FHIR library
   -u, --update        update existing bundle file (content and date only)
+  --source-encoding=<value>  source file encoding (auto-detected if omitted)
 
 DESCRIPTION
   Bundles raw lenses into a FHIR compliant single file.
@@ -325,7 +341,7 @@ Check integrity between JavaScript file and FHIR Library bundle content.
 
 ```
 USAGE
-  $ lens-tool-bundler check FILE [-b <value>] [-n <value>] [-q]
+  $ lens-tool-bundler check FILE [-b <value>] [-n <value>] [-q] [--source-encoding <value>]
 
 ARGUMENTS
   FILE  JavaScript file to check
@@ -334,6 +350,7 @@ FLAGS
   -b, --bundle=<value>  path to the bundle file to check
   -n, --name=<value>    name of the bundle to check (without .json extension)
   -q, --quiet           suppress output, only return exit code
+  --source-encoding=<value>  source file encoding (auto-detected if omitted)
 
 DESCRIPTION
   Check integrity between JavaScript file and FHIR Library bundle content.

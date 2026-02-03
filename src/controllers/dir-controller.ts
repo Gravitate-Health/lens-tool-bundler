@@ -1,6 +1,8 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
 
+import {getFileData, toBase64Utf8} from './file-controller.js';
+
 export interface ValidationResult {
   errors: string[];
   isValid: boolean;
@@ -123,7 +125,7 @@ export function findEnhanceFiles(dir: string): EnhanceFiles {
         traverse(filePath);
       } else if (path.extname(file) === '.js') {
         try {
-          const content = fs.readFileSync(filePath, 'utf8');
+          const content = getFileData(filePath);
           // Check if the file contains an enhance function using regex
           const enhancePatterns = [
             /function\s+enhance\s*\(/,
@@ -168,8 +170,8 @@ export function findEnhanceFiles(dir: string): EnhanceFiles {
  * @returns Base64 encoded string
  */
 export function jsToBase64(filePath: string): string {
-  const content = fs.readFileSync(filePath, 'utf8');
-  return Buffer.from(content).toString('base64');
+  const content = getFileData(filePath);
+  return toBase64Utf8(content);
 }
 
 /**
@@ -181,7 +183,7 @@ function getDefaultEnhanceBase64(): string {
     console.log('Not Enhancing');
     return originalContent;
 }`;
-  return Buffer.from(defaultEnhance).toString('base64');
+  return toBase64Utf8(defaultEnhance);
 }
 
 function isLensMissingBase64Content(jsonData: Record<string, unknown>): boolean {

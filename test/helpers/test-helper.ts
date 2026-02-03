@@ -91,6 +91,26 @@ export function readBase64ContentFromLens(filePath: string): string | null {
 }
 
 /**
+ * Reads raw base64 content from a FHIR Library JSON file (without decoding)
+ * @param filePath - Path to the JSON file
+ * @returns Base64 string or null if not found
+ */
+export function readRawBase64FromLens(filePath: string): string | null {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  const content = fs.readFileSync(filePath, 'utf8');
+  const lensData = JSON.parse(content);
+
+  if (lensData.content && Array.isArray(lensData.content) && lensData.content[0]?.data) {
+    return lensData.content[0].data;
+  }
+
+  return null;
+}
+
+/**
  * Creates a package.json file for lens template testing
  * @param filePath - Path where to create the file
  * @param name - Name of the lens

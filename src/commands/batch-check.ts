@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 
 import * as dirController from '../controllers/dir-controller.js'
+import {getFileData, toBase64Utf8} from '../controllers/file-controller.js'
 
 interface CheckResult {
   bundleFile: string;
@@ -37,6 +38,7 @@ export default class BatchCheck extends Command {
       description: 'suppress output, only return exit code',
       required: false,
     }),
+    'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
   }
 
   public async run(): Promise<void> {
@@ -71,7 +73,7 @@ export default class BatchCheck extends Command {
       let hasFailures = false;
 
       for (const pair of filePairs) {
-        const result = await this.checkPair(pair.jsFile, pair.jsonFile);
+        const result = await this.checkPair(pair.jsFile, pair.jsonFile, flags['source-encoding']);
         results.push(result);
         if (!result.passed) {
           hasFailures = true;
@@ -99,7 +101,7 @@ export default class BatchCheck extends Command {
     }
   }
 
-  private async checkPair(jsFile: string, jsonFile: string): Promise<CheckResult> {
+  private async checkPair(jsFile: string, jsonFile: string, sourceEncoding?: string): Promise<CheckResult> {
     try {
       // Read JavaScript file
       if (!fs.existsSync(jsFile)) {
@@ -111,8 +113,8 @@ export default class BatchCheck extends Command {
         };
       }
 
-      const jsContent = fs.readFileSync(jsFile, 'utf8');
-      const expectedBase64 = Buffer.from(jsContent, 'binary').toString('base64');
+      const jsContent = getFileData(jsFile, sourceEncoding);
+      const expectedBase64 = toBase64Utf8(jsContent);
 
       // Check if bundle exists
       if (!fs.existsSync(jsonFile)) {

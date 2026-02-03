@@ -23,6 +23,8 @@ This is an oclif-based CLI tool for bundling and managing FHIR Lenses for the Gr
 - **Dual entry points**: [bin/run.js](../bin/run.js) (production) and [bin/dev.js](../bin/dev.js) (dev with ts-node)
 - **File pairing convention**: `<name>.js` (enhance function) pairs with `<name>.json` (FHIR bundle)
 - **Base64 validation**: Detects if JS content changed to avoid unnecessary re-bundling
+- **Encoding normalization**: All FHIR Library bundles store UTF-8 base64 content regardless of source file encoding
+- **Cross-platform compatibility**: Auto-detects encoding (chardet) with manual override (`--source-encoding` flag)
 
 ## Development Workflows
 
@@ -36,12 +38,12 @@ lens-tool-bundler      # After npm link or global install
 
 ### Testing
 ```bash
-npm test               # Runs mocha tests + lint (83 tests, all passing)
+npm test               # Runs mocha tests + lint (109 tests, all passing)
 npm run lint           # ESLint with @typescript-eslint
 ```
 
 **Testing Framework**: @oclif/test v4.1.16 with Mocha + Chai
-- All 83 tests passing (47 unit/integration + 36 command tests)
+- All 109 tests passing (83 original + 26 encoding tests)
 - Uses `runCommand()` pattern from oclif v4
 - Proper exit code handling (0 = success, 1 = validation failure, 2 = fatal error)
 
@@ -118,6 +120,20 @@ Always creates:
 - PUT: Client must provide matching `id` for existing resource
 - Search parameter: Use `name=` (not `name:exact=`) for better compatibility
 
+### Encoding Handling
+[file-controller.ts](../src/controllers/file-controller.ts) handles encoding detection and conversion:
+- `getFileData(filePath, sourceEncoding?)`: Read file with auto-detection or specified encoding
+- `toBase64Utf8(content)`: Convert string to UTF-8 base64 (always produces UTF-8 output)
+- `stripBom(content)`: Remove UTF-8 BOM markers (\uFEFF)
+- `resolveEncoding(buffer, sourceEncoding?)`: Auto-detect or use specified encoding
+
+**Cross-Platform Guarantee**: JS files can be in any encoding (UTF-8, UTF-16LE, Windows-1252, Latin1), but all FHIR Library bundles store UTF-8 base64 content. This ensures integrity checks pass when bundling on one OS (e.g., Mac UTF-16LE) and checking on another (e.g., Linux UTF-8).
+
+**Command Support**: `--source-encoding` flag available on:
+- `bundle`: Override encoding for JS source file
+- `check`: Specify encoding when verifying integrity
+- `batch-bundle`, `batch-check`, `batch-upload`: Apply encoding to all operations
+
 ### Spinner Convention
 Commands use ora spinners with helper functions from [spinner-controller.ts](../src/controllers/spinner-controller.ts):
 - `changeSpinnerText()`: Update spinner message
@@ -130,6 +146,8 @@ Commands use ora spinners with helper functions from [spinner-controller.ts](../
 - **oclif**: CLI framework (commands, flags, args parsing)
 - **inquirer**: Interactive prompts (used in `bundle` and `new` commands)
 - **ora**: Terminal spinners for progress feedback
+- **chardet**: Automatic encoding detection for source JS files
+- **iconv-lite**: Encoding conversion (UTF-8, UTF-16LE, Windows-1252, Latin1, etc.)
 
 ### FHIR Server Integration
 Expects FHIR R4-compliant servers (tested with HAPI FHIR) supporting:
@@ -235,6 +253,15 @@ lens-tool-bundler lslens -v
 
 # List enhance JS files with pairing details
 lens-tool-bundler lsenhancejs -d
+
+# Bundle with specific source encoding (cross-platform compatibility)
+lens-tool-bundler bundle mylens.js -n MyLens --source-encoding windows-1252
+
+# Check integrity with encoding override
+lens-tool-bundler check mylens.js -b mylens.json --source-encoding utf-16le
+
+# Batch operations with encoding
+lens-tool-bundler batch-bundle ./lenses --source-encoding latin1
 ```
 
 ## Testing
@@ -271,6 +298,18 @@ it('should execute command', async () => {
 Use helpers from `test/helpers/test-helper.ts` for common operations:
 - `createTestDirectory()`: Temp directory with auto-cleanup
 - `createMockEnhanceFile()`: Mock JavaScript lens function
+- `createMockLensFile()`: Mock FHIR Library bundle
+- `readBase64ContentFromLens()`: Decode bundle content for verification
+- `readRawBase64FromLens()`: Read raw base64 string without decoding
+
+### Test Coverage
+
+**Encoding Tests** (`test/controllers/file-controller.test.ts` + `test/commands/encoding-integration.test.ts`):
+- Unit tests: 9 tests for encoding detection, conversion, BOM stripping
+- Integration tests: 18 tests for cross-platform scenarios (Mac UTF-16LE, Windows-1252, Linux UTF-8)
+- Unicode/emoji handling
+- Auto-detection vs manual override
+- Cross-platform integrity check scenarios
 - `createMockLensFile()`: Mock FHIR Library bundle
 - `readBase64ContentFromLens()`: Decode bundle content for verification
 
