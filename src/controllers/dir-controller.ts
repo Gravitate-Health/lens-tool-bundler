@@ -297,7 +297,7 @@ export async function discoverLenses(lensFilePath: string, exclusions: RegExp[] 
           if (enhanceFile) {
             try {
               base64Content = jsToBase64(enhanceFile);
-            } catch (jsError: unknown) {
+            } catch {
               base64Content = getDefaultEnhanceBase64();
               enhanceFile = '';
               enhanceSource = 'default';
@@ -338,13 +338,13 @@ export async function discoverLenses(lensFilePath: string, exclusions: RegExp[] 
 
               validLenses.push(lensEntry);
             }
-          } catch (enhanceError: unknown) {
+          } catch {
             // Enhancement failed, skip this lens
           }
         } else {
           // Invalid lens, skip
         }
-      } catch (error: unknown) {
+      } catch {
         // Skip files that can't be parsed
       }
     }

@@ -59,24 +59,24 @@ export default class Lslens extends Command {
     try {
       // Discover all lenses (both valid and almost-valid)
       const lenses = await dirController.discoverLenses(directory);
-      
+
       // Also discover invalid lenses if requested
       const allJsonFiles = dirController.findJsonFiles(directory);
-      const allLenses: Array<LensEntry & { validation?: dirController.ValidationResult }> = [];
-      
+      const allLenses: Array<LensEntry & {validation?: dirController.ValidationResult}> = [];
+
       // Validate all JSON files to categorize them
       for (const filePath of allJsonFiles) {
         const existingLens = lenses.find(l => l.path === filePath);
         if (existingLens) {
           const validation = dirController.validateFHIRLens(existingLens.lens);
-          allLenses.push({ ...existingLens, validation });
+          allLenses.push({...existingLens, validation});
         } else {
           // Try to parse as potential lens
           try {
-            const content = require('fs').readFileSync(filePath, 'utf8');
+            const content = fs.readFileSync(filePath, 'utf8');
             const jsonData = JSON.parse(content);
             const validation = dirController.validateFHIRLens(jsonData);
-            
+
             if (jsonData.resourceType === 'Library') {
               allLenses.push({
                 hasBase64: false,
@@ -111,8 +111,8 @@ export default class Lslens extends Command {
         filteredLenses = allLenses.filter(lens => {
           const val = lens.validation;
           if (!val) return false;
-          return !val.isValid && val.errors.length <= 2 && 
-                 val.errors.some(e => e.includes('content'));
+          return !val.isValid && val.errors.length <= 2
+                 && val.errors.some(e => e.includes('content'));
         });
       } else if (!flags.all) {
         // Only include fully valid lenses
@@ -135,90 +135,7 @@ export default class Lslens extends Command {
     }
   }
 
-  private outputJson(lenses: Array<LensEntry & { validation?: dirController.ValidationResult }>, includeValidation: boolean): void {
-    const output = lenses.map(lens => {
-      const result: Record<string, unknown> = {
-        hasBase64: lens.hasBase64,
-        name: lens.name,
-        path: lens.path,
-        status: lens.status,
-        url: lens.url,
-        version: lens.version,
-      };
-
-      if (lens.enhancedWithJs) {
-        result.enhancedWithJs = lens.enhancedWithJs;
-        result.enhanceSource = lens.enhanceSource;
-      }
-
-      if (includeValidation) {
-        const validation = lens.validation || dirController.validateFHIRLens(lens.lens);
-        result.validation = {
-          errors: validation.errors,
-          isValid: validation.isValid,
-          missingRequirements: this.getMissingRequirements(lens.lens, validation),
-        };
-      }
-
-      return result;
-    });
-
-    this.log(JSON.stringify(output, null, 2));
-  }
-
-  private outputSimple(lenses: Array<LensEntry & { validation?: dirController.ValidationResult }>): void {
-    // Output just the file paths, one per line (ideal for xargs)
-    for (const lens of lenses) {
-      this.log(lens.path);
-    }
-  }
-
-  private outputWithValidation(lenses: Array<LensEntry & { validation?: dirController.ValidationResult }>, showReasons: boolean): void {
-    for (const lens of lenses) {
-      this.log(`\n${'='.repeat(60)}`);
-      this.log(`File: ${lens.path}`);
-      this.log(`Name: ${lens.name}`);
-      this.log(`URL: ${lens.url}`);
-      this.log(`Version: ${lens.version}`);
-      this.log(`Status: ${lens.status}`);
-      this.log(`Has Base64 Content: ${lens.hasBase64 ? 'Yes' : 'No'}`);
-
-      if (lens.enhancedWithJs) {
-        this.log(`Enhanced with JS: ${lens.enhancedWithJs}`);
-        this.log(`Enhancement Source: ${lens.enhanceSource}`);
-      }
-
-      // Validate the lens
-      const validation = lens.validation || dirController.validateFHIRLens(lens.lens);
-
-      this.log('\nValidation:');
-      this.log(`  Valid: ${validation.isValid ? 'Yes' : 'No'}`);
-
-      if (validation.errors.length > 0) {
-        this.log('  Errors:');
-        for (const error of validation.errors) {
-          this.log(`    - ${error}`);
-        }
-        
-        if (showReasons) {
-          const missing = this.getMissingRequirements(lens.lens, validation);
-          if (missing.length > 0) {
-            this.log('\n  Required for Full Validation:');
-            for (const req of missing) {
-              this.log(`    - ${req}`);
-            }
-          }
-        }
-      } else {
-        this.log('  No validation errors');
-      }
-    }
-
-    this.log(`\n${'='.repeat(60)}`);
-    this.log(`Total lenses found: ${lenses.length}`);
-  }
-
-  private getMissingRequirements(lens: Record<string, unknown>, validation: dirController.ValidationResult): string[] {
+  private getMissingRequirements(lens: Record<string, unknown>, _validation: dirController.ValidationResult): string[] {
     const requirements: string[] = [];
 
     // Check for required fields based on FHIR Lens profile
@@ -301,14 +218,96 @@ export default class Lslens extends Command {
       requirements.push('extension (required): LEE version extension (http://hl7.eu/fhir/ig/gravitate-health/StructureDefinition/lee-version)');
     } else {
       const extensions = lens.extension as Array<Record<string, unknown>>;
-      const hasLeeVersion = extensions.some(ext => 
-        ext.url === 'http://hl7.eu/fhir/ig/gravitate-health/StructureDefinition/lee-version'
-      );
+      const hasLeeVersion = extensions.some(ext =>
+        ext.url === 'http://hl7.eu/fhir/ig/gravitate-health/StructureDefinition/lee-version');
       if (!hasLeeVersion) {
         requirements.push('extension[lee-version] (required): LEE version string');
       }
     }
 
     return requirements;
+  }
+
+  private outputJson(lenses: Array<LensEntry & {validation?: dirController.ValidationResult}>, includeValidation: boolean): void {
+    const output = lenses.map(lens => {
+      const result: Record<string, unknown> = {
+        hasBase64: lens.hasBase64,
+        name: lens.name,
+        path: lens.path,
+        status: lens.status,
+        url: lens.url,
+        version: lens.version,
+      };
+
+      if (lens.enhancedWithJs) {
+        result.enhancedWithJs = lens.enhancedWithJs;
+        result.enhanceSource = lens.enhanceSource;
+      }
+
+      if (includeValidation) {
+        const validation = lens.validation || dirController.validateFHIRLens(lens.lens);
+        result.validation = {
+          errors: validation.errors,
+          isValid: validation.isValid,
+          missingRequirements: this.getMissingRequirements(lens.lens, validation),
+        };
+      }
+
+      return result;
+    });
+
+    this.log(JSON.stringify(output, null, 2));
+  }
+
+  private outputSimple(lenses: Array<LensEntry & {validation?: dirController.ValidationResult}>): void {
+    // Output just the file paths, one per line (ideal for xargs)
+    for (const lens of lenses) {
+      this.log(lens.path);
+    }
+  }
+
+  private outputWithValidation(lenses: Array<LensEntry & {validation?: dirController.ValidationResult}>, showReasons: boolean): void {
+    for (const lens of lenses) {
+      this.log(`\n${'='.repeat(60)}`);
+      this.log(`File: ${lens.path}`);
+      this.log(`Name: ${lens.name}`);
+      this.log(`URL: ${lens.url}`);
+      this.log(`Version: ${lens.version}`);
+      this.log(`Status: ${lens.status}`);
+      this.log(`Has Base64 Content: ${lens.hasBase64 ? 'Yes' : 'No'}`);
+
+      if (lens.enhancedWithJs) {
+        this.log(`Enhanced with JS: ${lens.enhancedWithJs}`);
+        this.log(`Enhancement Source: ${lens.enhanceSource}`);
+      }
+
+      // Validate the lens
+      const validation = lens.validation || dirController.validateFHIRLens(lens.lens);
+
+      this.log('\nValidation:');
+      this.log(`  Valid: ${validation.isValid ? 'Yes' : 'No'}`);
+
+      if (validation.errors.length > 0) {
+        this.log('  Errors:');
+        for (const error of validation.errors) {
+          this.log(`    - ${error}`);
+        }
+
+        if (showReasons) {
+          const missing = this.getMissingRequirements(lens.lens, validation);
+          if (missing.length > 0) {
+            this.log('\n  Required for Full Validation:');
+            for (const req of missing) {
+              this.log(`    - ${req}`);
+            }
+          }
+        }
+      } else {
+        this.log('  No validation errors');
+      }
+    }
+
+    this.log(`\n${'='.repeat(60)}`);
+    this.log(`Total lenses found: ${lenses.length}`);
   }
 }

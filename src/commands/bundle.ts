@@ -252,16 +252,16 @@ export default class Bundle extends Command {
 
       // Update only the content and date
       existingBundle.date = new Date().toISOString();
-      
+
       // Ensure content is an array
       if (!Array.isArray(existingBundle.content)) {
         existingBundle.content = [];
       }
-      
+
       if (existingBundle.content.length === 0) {
         existingBundle.content.push({});
       }
-      
+
       existingBundle.content[0].data = base64FileData;
 
       const updatedBundleJson = JSON.stringify(existingBundle, null, 2);
