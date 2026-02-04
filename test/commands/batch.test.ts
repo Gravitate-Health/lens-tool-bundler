@@ -373,4 +373,211 @@ describe('batch operations integration', () => {
       expect(lenses.length).to.be.greaterThan(0);
     });
   });
+
+  describe('content field validation and repair', () => {
+    it('should handle lens with completely missing content field', async () => {
+      // Create lens JSON without content field at all
+      const lensData = {
+        resourceType: 'Library',
+        name: 'MissingContent',
+        status: 'draft',
+        // No content field
+      };
+      
+      const jsFile = path.join(context.testDir, 'missing-content.js');
+      const jsonFile = path.join(context.testDir, 'missing-content.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // Should discover and fix the lens
+      expect(lenses).to.have.lengthOf(1);
+      expect(lenses[0].hasBase64).to.be.true;
+      expect(lenses[0].lens.content).to.be.an('array');
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content).to.have.lengthOf(1);
+      expect(content[0].data).to.be.a('string').and.not.empty;
+    });
+
+    it('should handle lens with null content field', async () => {
+      const lensData = {
+        resourceType: 'Library',
+        name: 'NullContent',
+        status: 'draft',
+        content: null,
+      };
+      
+      const jsFile = path.join(context.testDir, 'null-content.js');
+      const jsonFile = path.join(context.testDir, 'null-content.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      expect(lenses).to.have.lengthOf(1);
+      expect(lenses[0].lens.content).to.be.an('array');
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content[0].data).to.exist;
+    });
+
+    it('should handle lens with content as string instead of array', async () => {
+      const lensData = {
+        resourceType: 'Library',
+        name: 'StringContent',
+        status: 'draft',
+        content: 'invalid string content',
+      };
+      
+      const jsFile = path.join(context.testDir, 'string-content.js');
+      const jsonFile = path.join(context.testDir, 'string-content.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // Should convert string to proper array
+      expect(lenses).to.have.lengthOf(1);
+      expect(lenses[0].lens.content).to.be.an('array');
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content[0].data).to.be.a('string');
+    });
+
+    it('should handle lens with content as object instead of array', async () => {
+      const lensData = {
+        resourceType: 'Library',
+        name: 'ObjectContent',
+        status: 'draft',
+        content: { data: 'old-base64', contentType: 'application/javascript' },
+      };
+      
+      const jsFile = path.join(context.testDir, 'object-content.js');
+      const jsonFile = path.join(context.testDir, 'object-content.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // Should convert object to proper array
+      expect(lenses).to.have.lengthOf(1);
+      expect(lenses[0].lens.content).to.be.an('array');
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content[0].data).to.be.a('string');
+    });
+
+    it('should handle lens with empty array content', async () => {
+      const lensData = {
+        resourceType: 'Library',
+        name: 'EmptyArrayContent',
+        status: 'draft',
+        content: [],
+      };
+      
+      const jsFile = path.join(context.testDir, 'empty-array.js');
+      const jsonFile = path.join(context.testDir, 'empty-array.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // Should add content to empty array
+      expect(lenses).to.have.lengthOf(1);
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content).to.have.lengthOf(1);
+      expect(content[0].data).to.exist;
+    });
+
+    it('should handle lens with array containing empty object', async () => {
+      const lensData = {
+        resourceType: 'Library',
+        name: 'EmptyObjectContent',
+        status: 'draft',
+        content: [{}],
+      };
+      
+      const jsFile = path.join(context.testDir, 'empty-object.js');
+      const jsonFile = path.join(context.testDir, 'empty-object.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // Should add data to empty object
+      expect(lenses).to.have.lengthOf(1);
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content[0].data).to.be.a('string').and.not.empty;
+    });
+
+    it('should handle lens with content array missing data field', async () => {
+      const lensData = {
+        resourceType: 'Library',
+        name: 'MissingDataField',
+        status: 'draft',
+        content: [{ contentType: 'application/javascript' }],
+      };
+      
+      const jsFile = path.join(context.testDir, 'missing-data.js');
+      const jsonFile = path.join(context.testDir, 'missing-data.json');
+      
+      createMockEnhanceFile(jsFile);
+      fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // Should add data field
+      expect(lenses).to.have.lengthOf(1);
+      const content = lenses[0].lens.content as Array<Record<string, unknown>>;
+      expect(content[0].data).to.be.a('string').and.not.empty;
+      expect(content[0].contentType).to.equal('application/javascript');
+    });
+
+    it('should handle multiple lenses with various content issues', async () => {
+      // Create multiple lenses with different content issues
+      const testCases = [
+        { name: 'missing1', content: undefined },
+        { name: 'missing2', content: null },
+        { name: 'string1', content: 'invalid' },
+        { name: 'empty1', content: [] },
+        { name: 'valid1', content: [{ data: 'dmFsaWQ=' }] },
+      ];
+
+      for (const testCase of testCases) {
+        const jsFile = path.join(context.testDir, `${testCase.name}.js`);
+        const jsonFile = path.join(context.testDir, `${testCase.name}.json`);
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData: any = {
+          resourceType: 'Library',
+          name: testCase.name,
+          status: 'draft',
+        };
+        
+        if (testCase.content !== undefined) {
+          lensData.content = testCase.content;
+        }
+        
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+      }
+
+      const lenses = await dirController.discoverLenses(context.testDir);
+      
+      // All should be discovered and fixed
+      expect(lenses).to.have.lengthOf(5);
+      
+      // All should have valid content arrays
+      for (const lens of lenses) {
+        expect(lens.lens.content).to.be.an('array');
+        const content = lens.lens.content as Array<Record<string, unknown>>;
+        expect(content).to.have.lengthOf.at.least(1);
+        expect(content[0].data).to.be.a('string').and.not.empty;
+      }
+    });
+  });
 });

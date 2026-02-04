@@ -314,4 +314,168 @@ describe('check command', () => {
       }
     });
   });
+
+  describe('content field validation', () => {
+    it('should fail when lens has missing content field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'missing-content.js');
+        const jsonFile = path.join(context.testDir, 'missing-content.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'MissingContent',
+          status: 'draft',
+          // No content field
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has null content field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'null-content.js');
+        const jsonFile = path.join(context.testDir, 'null-content.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'NullContent',
+          status: 'draft',
+          content: null,
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has content as string', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'string-content.js');
+        const jsonFile = path.join(context.testDir, 'string-content.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'StringContent',
+          status: 'draft',
+          content: 'invalid string',
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has empty content array', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'empty-array.js');
+        const jsonFile = path.join(context.testDir, 'empty-array.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'EmptyArray',
+          status: 'draft',
+          content: [],
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has content with empty object', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'empty-object.js');
+        const jsonFile = path.join(context.testDir, 'empty-object.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'EmptyObject',
+          status: 'draft',
+          content: [{}],
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has content missing data field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'no-data.js');
+        const jsonFile = path.join(context.testDir, 'no-data.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'NoData',
+          status: 'draft',
+          content: [{ contentType: 'application/javascript' }],
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+  });
 });

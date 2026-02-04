@@ -301,5 +301,132 @@ describe('bundle command', () => {
         process.chdir(originalCwd);
       }
     });
+
+    it('should update lens with missing content field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        // Create lens without content field
+        const jsFile = path.join(context.testDir, 'fix-lens.js');
+        const jsonFile = path.join(context.testDir, 'FixLens.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'FixLens',
+          status: 'draft',
+          date: '2024-01-01T00:00:00.000Z',
+          // No content field
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        // Update with bundle command using --update flag
+        await runCommand(['bundle', jsFile, '--name', 'FixLens', '--update']);
+
+        // Small delay
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // Verify content was added
+        const updatedLens = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        expect(updatedLens.content).to.be.an('array');
+        expect(updatedLens.content).to.have.lengthOf(1);
+        expect(updatedLens.content[0].data).to.be.a('string').and.not.empty;
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should update lens with null content field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'null-lens.js');
+        const jsonFile = path.join(context.testDir, 'NullLens.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'NullLens',
+          status: 'draft',
+          content: null,
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        await runCommand(['bundle', jsFile, '--name', 'NullLens', '--update']);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const updatedLens = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        expect(updatedLens.content).to.be.an('array');
+        expect(updatedLens.content[0].data).to.exist;
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should update lens with content as string', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'string-lens.js');
+        const jsonFile = path.join(context.testDir, 'StringLens.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'StringLens',
+          status: 'draft',
+          content: 'invalid string',
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        await runCommand(['bundle', jsFile, '--name', 'StringLens', '--update']);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const updatedLens = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        expect(updatedLens.content).to.be.an('array');
+        expect(updatedLens.content[0].data).to.be.a('string');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should update lens with empty content array', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'empty-array-lens.js');
+        const jsonFile = path.join(context.testDir, 'EmptyArrayLens.json');
+        
+        createMockEnhanceFile(jsFile);
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'EmptyArrayLens',
+          status: 'draft',
+          content: [],
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        await runCommand(['bundle', jsFile, '--name', 'EmptyArrayLens', '--update']);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const updatedLens = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        expect(updatedLens.content).to.have.lengthOf(1);
+        expect(updatedLens.content[0].data).to.exist;
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
   });
 });

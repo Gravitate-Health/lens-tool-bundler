@@ -41,10 +41,6 @@ export function validateFHIRLens(lens: Record<string, unknown>): ValidationResul
     errors.push('resourceType must be "Library"');
   }
 
-  if (!lens.url || typeof lens.url !== 'string') {
-    errors.push('url is required and must be a string');
-  }
-
   if (!lens.name || typeof lens.name !== 'string') {
     errors.push('name is required and must be a string');
   }
@@ -320,7 +316,8 @@ export async function discoverLenses(lensFilePath: string, exclusions: RegExp[] 
           }
 
           try {
-            jsonData.content = jsonData.content || [];
+            // Ensure content is an array (handles missing, null, or non-array values)
+            jsonData.content = Array.isArray(jsonData.content) ? jsonData.content : [];
             if (jsonData.content.length === 0) {
               jsonData.content.push({});
             }

@@ -310,4 +310,102 @@ describe('test command', () => {
       }
     }).timeout(10000);
   });
+
+  describe('content field validation', () => {
+    it('should fail when lens has missing content field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsonFile = path.join(context.testDir, 'missing-content-test.json');
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'MissingContentTest',
+          status: 'draft',
+          // No content field
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['test', jsonFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has null content field', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsonFile = path.join(context.testDir, 'null-content-test.json');
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'NullContentTest',
+          status: 'draft',
+          content: null,
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['test', jsonFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has empty content array', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsonFile = path.join(context.testDir, 'empty-content-test.json');
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'EmptyContentTest',
+          status: 'draft',
+          content: [],
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['test', jsonFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should fail when lens has content with empty data', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsonFile = path.join(context.testDir, 'empty-data-test.json');
+        
+        const lensData = {
+          resourceType: 'Library',
+          name: 'EmptyDataTest',
+          status: 'draft',
+          content: [{ data: '' }],
+        };
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['test', jsonFile]);
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+  });
 });
