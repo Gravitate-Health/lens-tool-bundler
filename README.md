@@ -14,7 +14,8 @@
 🧪 **Test**: Run comprehensive validation and content preservation tests  
 🚀 **Deploy**: Upload lenses to FHIR servers with smart update/create logic  
 ✅ **Validate**: Check integrity between source code and bundles  
-🔄 **Batch Operations**: Process multiple lenses at once with smart filtering
+� **List**: Discover and list lenses with ls-like output (pipe-friendly)  
+�🔄 **Batch Operations**: Process multiple lenses at once with smart filtering
 
 ## Quick Start
 
@@ -25,6 +26,9 @@ npm install -g @gravitate-health/lens-tool-bundler
 # Create a new lens project
 lens-tool-bundler new MyLens --template
 
+# List all lenses (clean ls-like output)
+lens-tool-bundler lslens ./lenses
+
 # Bundle a lens
 lens-tool-bundler bundle mylens.js -p
 
@@ -33,6 +37,9 @@ lens-tool-bundler test mylens.json
 
 # Upload to FHIR server
 lens-tool-bundler upload mylens.json -d https://your-fhir-server.com/api/fhir
+
+# Pipe-friendly batch processing
+lens-tool-bundler lslens ./lenses | xargs -I {} lens-tool-bundler test {}
 ```
 
 ## Table of Contents
@@ -94,12 +101,12 @@ We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for 
 
 ### Testing
 
-The project has comprehensive test coverage with 83 tests, all passing:
-- **47 unit/integration tests**: Models, controllers, and batch operations
-- **36 command tests**: All CLI commands with proper oclif v4 patterns
+The project has comprehensive test coverage with 143 tests, all passing:
+- **84 unit/integration tests**: Models, controllers, batch operations, and encoding scenarios
+- **59 command tests**: All CLI commands with proper oclif v4 patterns
 
 ```bash
-npm test               # Run all tests (83 passing)
+npm test               # Run all tests (143 passing)
 npm run lint           # Run ESLint
 ```
 
@@ -509,15 +516,17 @@ List valid FHIR lenses in a directory (similar to ls).
 
 ```
 USAGE
-  $ lens-tool-bundler lslens [DIRECTORY] [-a] [-j] [-v]
+  $ lens-tool-bundler lslens [DIRECTORY] [-a] [--almost-valid] [-j] [-r] [-v]
 
 ARGUMENTS
   DIRECTORY  [default: .] directory to search for lenses
 
 FLAGS
-  -a, --all       include lenses that may be missing content (base64 data)
-  -j, --json      output as JSON format
-  -v, --validate  include full validation report for each lens
+  -a, --all           include lenses that may be missing content (base64 data)
+  -j, --json          output as JSON format
+  -r, --show-reasons  show what is missing for full validation
+  -v, --validate      include full validation report for each lens
+      --almost-valid  show almost-valid lenses (missing only content or minor fields)
 
 DESCRIPTION
   List valid FHIR lenses in a directory (similar to ls).
@@ -530,6 +539,10 @@ EXAMPLES
   $ lens-tool-bundler lslens -a
 
   $ lens-tool-bundler lslens -v
+
+  $ lens-tool-bundler lslens --almost-valid
+
+  $ lens-tool-bundler lslens --show-reasons
 
   $ lens-tool-bundler lslens ./lenses | xargs -I {} echo "Processing: {}"
 ```

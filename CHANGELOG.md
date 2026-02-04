@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Enhanced lslens Command**: New flags for advanced lens discovery and validation
+  - `--almost-valid`: Filter lenses with minor validation issues (1-2 content-related errors)
+  - `--show-reasons (-r)`: Display detailed requirements for full FHIR Lens profile compliance
+  - `getMissingRequirements()` method based on FHIR Lens profile specification
+  - Shows specific field requirements with descriptions (name, version, status, description, purpose, usage, copyright, type, identifier, jurisdiction, parameter, content, LEE version extension)
+- **Content Field Validation**: Robust handling of malformed content fields
+  - Enhanced validation to handle missing, null, string, object, and empty array content values
+  - `Array.isArray()` checks replace truthy checks for proper type validation
+  - Auto-enhancement of lenses with invalid content using default enhance function
+  - 22 new tests for content field edge cases across bundle, check, and test commands
+  - All 143 tests passing (up from 121)
+
+### Changed
+- **Clean ls-like Output**: Removed all discovery debug messages from console output
+  - `lslens` now outputs only file paths by default (perfect for piping to xargs)
+  - Discovery messages removed from `discoverLenses()` in `dir-controller.ts`
+  - Validation details available via `--validate` or `--show-reasons` flags
+- Updated README with enhanced lslens documentation and examples
+- Updated test count from 83 to 143 tests in documentation
+- Added "List" feature to Features section
+
+### Fixed
+- Content field validation now properly handles all edge cases (missing, null, string, object, empty array)
+- Bundle update operations now create content arrays when missing or invalid
+
 ## [0.5.4] - 2026-02-03
 
 ### Added
