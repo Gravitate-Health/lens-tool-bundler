@@ -1,6 +1,6 @@
 {
   "name": "@gravitate-health/lens-tool-bundler",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "CLI tool for creating, bundling, testing, and deploying FHIR-compliant Gravitate Health lenses - JavaScript enhancement functions that personalize electronic product information (ePI) for patients",
   "keywords": [
     "oclif",
