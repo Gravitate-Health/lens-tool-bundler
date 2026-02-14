@@ -131,7 +131,9 @@ export default class BatchBundle extends Command {
         }
 
         try {
-          // Determine which JS file to use
+          // Determine which JS file to use with priority:
+          // 1. Exact match: JS file with same name as JSON file (e.g., lens.js for lens.json)
+          // 2. Fallback: Any JS file with enhance function in the same directory
           let jsFile = enhanceFiles.exact[lens.path];
           let enhanceSource = 'exact-match';
 

@@ -131,6 +131,9 @@ export function findJsonFiles(dir: string, exclusions: RegExp[] = DEFAULT_EXCLUS
 
 /**
  * Find JavaScript files with an enhance function
+ * Returns both exact matches and fallback options:
+ * - exact: Map of JSON file path to matching JS file path (e.g., lens.json -> lens.js)
+ * - fallback: Map of directory to array of JS file paths with enhance functions
  * @param dir - The directory to search
  * @param exclusions - Array of RegExp patterns to exclude (defaults to DEFAULT_EXCLUSIONS)
  * @returns EnhanceFiles object with exact and fallback matches

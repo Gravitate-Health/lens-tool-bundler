@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.6] - 2026-02-14
+
+### Added
+- **Bundle Prioritization**: Intelligent lens file matching for bundle operations
+  - Added `--bundle (-b)` flag to explicitly specify target Library JSON file
+  - Implemented two-tier prioritization: exact filename match (lens.js → lens.json) > name parameter match
+  - `findBundleFile()` method with FHIR Library validation
+  - All bundling modes support explicit target files (default, package.json, interactive)
+  - 10 new prioritization tests covering single/batch operations and edge cases
+  - Documentation comments in batch-bundle explaining pairing logic
+
+### Changed
+- Bundle command now intelligently finds matching Library files before creating new ones
+- Batch-bundle operations respect same prioritization rules for consistent behavior
+- All 153 tests passing (up from 143)
+
+### Fixed
+- Removed duplicate method definitions and unused imports
+- Fixed ESLint perfectionist/sort-classes warnings
+
 ## [0.5.5] - 2026-02-04
 
 ### Added

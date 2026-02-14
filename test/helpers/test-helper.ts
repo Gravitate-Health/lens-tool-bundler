@@ -27,12 +27,15 @@ export function createTestDirectory(): TestContext {
  * Creates a mock enhance function JavaScript file
  * @param filePath - Path where to create the file
  * @param functionName - Name of the function (default: 'enhance')
+ * @param customBody - Custom function body (optional)
  */
-export function createMockEnhanceFile(filePath: string, functionName: string = 'enhance'): void {
-  const content = `function ${functionName}(epi) {
-  // Mock enhance function for testing
+export function createMockEnhanceFile(filePath: string, functionName: string = 'enhance', customBody?: string): void {
+  const body = customBody || `// Mock enhance function for testing
   console.log('Enhancing EPI');
-  return epi;
+  return epi;`;
+  
+  const content = `function ${functionName}(epi) {
+  ${body}
 }
 
 module.exports = ${functionName};
