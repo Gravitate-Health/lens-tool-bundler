@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] - 2026-02-15
+
+### Fixed
+- **Bundle Command**: Fixed issue where content was not being added to Library when updating existing bundle files with empty or malformed content arrays
+  - Enhanced `writeBundleToFileWithTarget()` to ensure content array exists and has at least one element before updating
+  - Previously, if existing bundle had empty content array, base64 data would be skipped
+  - Now properly initializes content array and adds base64 data in all cases
+
 ## [0.5.6] - 2026-02-14
 
 ### Added
