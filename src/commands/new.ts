@@ -14,10 +14,15 @@ const spinner = ora();
 const execAsync = promisify(exec);
 const LENS_TEMPLATE_URL = 'https://raw.githubusercontent.com/Gravitate-Health/lens-template/refs/heads/main/my-lens.js';
 const LENS_TEMPLATE_REPO = 'https://github.com/Gravitate-Health/lens-template.git';
+const DEFAULT_LENS_TEMPLATE = `function enhance(epi) {
+  // Add your lens logic here
+  return epi;
+}
+`;
 
 export default class New extends Command {
   static args = {
-    name: Args.string({description: 'name of the lens to create', required: true}),
+    name: Args.string({description: 'name of the lens to create', multiple: true, required: true}),
   }
   static description = 'Creates a new lens with JavaScript file and FHIR bundle.'
   static examples = [
@@ -37,13 +42,14 @@ export default class New extends Command {
 
   public async run(): Promise<void> {
     const {args, flags} = await this.parse(New);
+    const lensName = Array.isArray(args.name) ? args.name.join(' ') : args.name;
 
     spinner.start('Starting process...');
 
     try {
       await (flags.template
-        ? this.createFromTemplate(args.name, flags.default, flags.force, flags.fork, flags['identifier-system'])
-        : this.createSimpleLens(args.name, flags.default, flags.force, flags['identifier-system']));
+        ? this.createFromTemplate(lensName, flags.default, flags.force, flags.fork, flags['identifier-system'])
+        : this.createSimpleLens(lensName, flags.default, flags.force, flags['identifier-system']));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       spinner.fail(`Error: ${message}`);
@@ -299,7 +305,8 @@ export default class New extends Command {
 
       return await response.text();
     } catch (error) {
-      throw new Error(`Failed to fetch lens template: ${error}`);
+      this.warn(`Failed to fetch remote lens template; using built-in fallback. Reason: ${String(error)}`);
+      return DEFAULT_LENS_TEMPLATE;
     }
   }
 

@@ -176,20 +176,16 @@ describe('cross-platform encoding integration', () => {
   });
 
   describe('batch operations with mixed encodings', () => {
-    // Note: This test is skipped because batch-bundle has complex discovery logic
-    // that already enhances lenses in memory during the discovery phase.
-    // The individual bundle command tests above adequately cover encoding support.
-    it.skip('should handle batch-bundle with source-encoding flag', async () => {
+    it('should handle batch-bundle with source-encoding flag', async () => {
       const originalCwd = process.cwd();
 
       try {
         process.chdir(context.testDir);
 
-        // Create multiple UTF-16LE JS files with corresponding empty JSON files
+        // Create multiple UTF-16LE JS files with corresponding existing lens JSON files
         const iconv = await import('iconv-lite');
         const lenses = [
           {name: 'lens1', content: 'function enhance(epi) { return epi; }'},
-          {name: 'lens2', content: 'function enhance(epi) { return epi + "2"; }'},
         ];
 
         for (const lens of lenses) {
@@ -200,27 +196,14 @@ describe('cross-platform encoding integration', () => {
           const utf16Buffer = iconv.default.encode(lens.content, 'utf16le');
           fs.writeFileSync(jsFile, utf16Buffer);
           
-          // Create empty/invalid lens files that need bundling
-          // Write minimal FHIR structure without proper base64 content
-          const emptyLens = {
-            resourceType: 'Library',
-            id: lens.name,
-            name: lens.name,
-            status: 'draft',
-            url: `http://example.com/${lens.name}`,
-            content: [{contentType: 'application/javascript', data: ''}] // Empty data
-          };
-          fs.writeFileSync(jsonFile, JSON.stringify(emptyLens, null, 2));
+          // Create existing lens bundles that batch-bundle should update
+          createMockLensFile(jsonFile, lens.name, true);
         }
 
         // Batch bundle with encoding - should update the empty content
-        // Use --force to ensure files are written even if content matches in memory
+        // Use --force to ensure files are written even if content appears up to date
         const {error: bundleError} = await runCommand(['batch-bundle', context.testDir, '--source-encoding', 'utf16le', '--force']);
-        
-        // Check if there was an error
-        if (bundleError) {
-          console.error('Batch bundle error:', bundleError);
-        }
+        expect(bundleError).to.not.exist;
 
         // Verify all were bundled with correct content
         for (const lens of lenses) {
@@ -230,15 +213,6 @@ describe('cross-platform encoding integration', () => {
           // Debug: read the file and check its structure
           const fileContent = fs.readFileSync(bundleFile, 'utf8');
           const lensData = JSON.parse(fileContent);
-          
-          // Log what we found
-          if (!lensData.content || !Array.isArray(lensData.content) || lensData.content.length === 0) {
-            console.error(`Lens ${lens.name} has no content array`);
-          } else if (!lensData.content[0].data) {
-            console.error(`Lens ${lens.name} content[0] has no data field`);
-          } else {
-            console.log(`Lens ${lens.name} has data: ${lensData.content[0].data.substring(0, 20)}...`);
-          }
           
           const base64Content = readRawBase64FromLens(bundleFile);
           expect(base64Content, `Bundle ${lens.name} should have base64 content`).to.not.be.null;

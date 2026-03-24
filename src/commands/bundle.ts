@@ -125,7 +125,7 @@ export default class Bundle extends Command {
     });
   }
 
-  private bundleLensesInteractive(file: string, name: string, sourceEncoding?: string, bundleFile?: string, identifierSystem?: string): void {
+  private async bundleLensesInteractive(file: string, name: string, sourceEncoding?: string, bundleFile?: string, identifierSystem?: string): Promise<void> {
     changeSpinnerText('Bundling lenses', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
     const fileData = getFileData(file, sourceEncoding);
@@ -134,7 +134,24 @@ export default class Bundle extends Command {
     const base64FileData = toBase64Utf8(fileData);
     stopAndPersistSpinner('File data converted to base64', spinner);
 
-    inquirer.prompt([
+    if (!process.stdin.isTTY) {
+      changeSpinnerText(`Making bundle with name: ${name}`, spinner);
+      const bundle = LensFhirResource.interactiveValues(name, '', '', '', base64FileData);
+      LensFhirResource.applyFhirIdentifier(bundle, name, identifierSystem);
+      stopAndPersistSpinner('Bundle created', spinner);
+      changeSpinnerText('Writing bundle to file...', spinner)
+      const targetFile = bundleFile || this.findBundleFile(file, name);
+      this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile, identifierSystem);
+      const actualFileName = targetFile || `${bundle.name}.json`;
+      stopAndPersistSpinner(`Bundle written to file: ${actualFileName}`, spinner);
+      spinner.stopAndPersist({
+        symbol: '⭐',
+        text: 'Process complete',
+      });
+      return;
+    }
+
+    const answers = await inquirer.prompt([
       {
         default: name,
         message: 'Enter the name of the bundle:',
@@ -156,20 +173,20 @@ export default class Bundle extends Command {
         name: 'purpose',
         type: 'input',
       },
-    ]).then(answers => {
-      changeSpinnerText(`Making bundle with name: ${answers.name}`, spinner);
-      const bundle = LensFhirResource.interactiveValues(answers.name, answers.description, answers.purpose, answers.usage, base64FileData);
-      LensFhirResource.applyFhirIdentifier(bundle, answers.name, identifierSystem);
-      stopAndPersistSpinner('Bundle created', spinner);
-      changeSpinnerText('Writing bundle to file...', spinner)
-      const targetFile = bundleFile || this.findBundleFile(file, answers.name);
-      this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile, identifierSystem);
-      const actualFileName = targetFile || `${bundle.name}.json`;
-      stopAndPersistSpinner(`Bundle written to file: ${actualFileName}`, spinner);
-      spinner.stopAndPersist({
-        symbol: '⭐',
-        text: 'Process complete',
-      });
+    ]);
+
+    changeSpinnerText(`Making bundle with name: ${answers.name}`, spinner);
+    const bundle = LensFhirResource.interactiveValues(answers.name, answers.description, answers.purpose, answers.usage, base64FileData);
+    LensFhirResource.applyFhirIdentifier(bundle, answers.name, identifierSystem);
+    stopAndPersistSpinner('Bundle created', spinner);
+    changeSpinnerText('Writing bundle to file...', spinner)
+    const targetFile = bundleFile || this.findBundleFile(file, answers.name);
+    this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile, identifierSystem);
+    const actualFileName = targetFile || `${bundle.name}.json`;
+    stopAndPersistSpinner(`Bundle written to file: ${actualFileName}`, spinner);
+    spinner.stopAndPersist({
+      symbol: '⭐',
+      text: 'Process complete',
     });
   }
 

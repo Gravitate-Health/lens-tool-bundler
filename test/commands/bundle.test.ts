@@ -62,7 +62,7 @@ describe('bundle command', () => {
         const jsFile = path.join(context.testDir, 'human-readable.js');
         createMockEnhanceFile(jsFile);
 
-        await runCommand(['bundle', jsFile, '--name', 'Human Readable Lens', '--default']);
+        await runCommand(['bundle', jsFile, '--name', '"Human Readable Lens"', '--default']);
 
         const jsonFile = path.join(context.testDir, 'Human Readable Lens.json');
         expect(fs.existsSync(jsonFile)).to.be.true;
@@ -145,7 +145,7 @@ describe('bundle command', () => {
         // Modify JS and bundle
         fs.writeFileSync(jsFile, 'function enhance(epi) { return epi; }');
         
-        await runCommand(['bundle', jsFile, '--name', 'CustomLens']);
+        await runCommand(['bundle', jsFile, '--name', 'CustomLens', '--default']);
 
         // Verify custom properties preserved
         const updatedData = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
@@ -173,7 +173,7 @@ describe('bundle command', () => {
         const initialDate = JSON.parse(fs.readFileSync(jsonFile, 'utf8')).date;
 
         // Bundle with skip-date flag
-        await runCommand(['bundle', jsFile, '--name', 'DateLens', '--skip-date']);
+        await runCommand(['bundle', jsFile, '--name', 'DateLens', '--skip-date', '--default']);
 
         const updatedDate = JSON.parse(fs.readFileSync(jsonFile, 'utf8')).date;
         expect(updatedDate).to.equal(initialDate);

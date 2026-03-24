@@ -46,11 +46,11 @@
   ],
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "prepack": "npm run build && oclif manifest",
     "postpack": "shx rm -f oclif.manifest.json",
     "prepare": "npm run build",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test": "mocha --forbid-only --exit \"test/**/*.test.ts\"",
     "posttest": "npm run lint",
     "version": "oclif readme && git add README.md"
   },

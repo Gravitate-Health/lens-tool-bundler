@@ -34,7 +34,6 @@ export class LensFhirResource {
   usage: string;
   version: string;
 
-  // eslint-disable-next-line max-params
   private constructor(resourceType: string, meta: Meta, extension: Extension[], url: string, identifier: Identifier[], version: string, name: string, title: string, status: string, experimental: boolean, type: Type, publisher: string, contact: Contact[], description: string, jurisdiction: Jurisdiction[], purpose: string, usage: string, copyright: string, parameter: Parameter[], content: Content[]) {
     this.resourceType = resourceType;
     this.id = LensFhirResource.normalizeFhirIdentifier(name);
@@ -191,7 +190,6 @@ export class LensFhirResource {
     );
   }
 
-  // eslint-disable-next-line max-params
   static interactiveValues(name: string, description: string, purpose: string, usage: string, lens: string): LensFhirResource {
     const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(name);
 
