@@ -1,7 +1,10 @@
-export async function uploadLenses(data: string, domain: string): Promise<Response> {
+import {LensFhirResource} from '../models/lens-fhir-resource.js'
+
+export async function uploadLenses(data: string, domain: string, identifierSystem?: string): Promise<Response> {
   const baseUrl = `${domain}/Library`;
 
   const dataJson = JSON.parse(data);
+  LensFhirResource.applyFhirIdentifier(dataJson, dataJson?.name, identifierSystem);
 
   const response = await fetch(`${baseUrl}?name=${encodeURIComponent(dataJson.name)}`, {
     method: 'GET',
@@ -20,7 +23,7 @@ export async function uploadLenses(data: string, domain: string): Promise<Respon
     console.log(`Updating existing lens: ${dataJson.name} (ID: ${existingId})`);
 
     // Ensure the id in the data matches the existing resource ID for PUT
-    const updateData = JSON.parse(data);
+    const updateData = JSON.parse(JSON.stringify(dataJson));
     updateData.id = existingId;
 
     const options = {
@@ -44,7 +47,7 @@ export async function uploadLenses(data: string, domain: string): Promise<Respon
   console.log(`Creating new lens: ${dataJson.name}`);
 
   // Remove id field for POST - FHIR servers generate IDs for new resources
-  const postData = JSON.parse(data);
+  const postData = JSON.parse(JSON.stringify(dataJson));
   delete postData.id;
 
   const options = {

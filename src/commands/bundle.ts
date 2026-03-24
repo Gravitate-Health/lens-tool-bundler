@@ -23,11 +23,13 @@ export default class Bundle extends Command {
     '<%= config.bin %> <%= command.id %> lens.js -u --bundle my-lens.json',
     '<%= config.bin %> <%= command.id %> lens.js -n my-lens --bundle target-lens.json',
     '<%= config.bin %> <%= command.id %> lens.js -n my-lens --source-encoding windows-1252',
+    '<%= config.bin %> <%= command.id %> lens.js -n "My Lens" --identifier-system https://example.org/fhir/lens-ids',
   ]
   static flags = {
     // flag with no value (-f, --force)
     bundle: Flags.string({char: 'b', description: 'path to target Library json file (auto-detected if omitted)', required: false}),
     default: Flags.boolean({char: 'd', description: 'use default values for the bundle', required: false}),
+    'identifier-system': Flags.string({description: 'FHIR identifier system to set on the resource', required: false}),
     name: Flags.string({char: 'n', description: 'name to apply to lens', required: false}),
     'package-json': Flags.boolean({char: 'p', description: 'use values from package.json to populate FHIR library', required: false}),
     'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
@@ -54,13 +56,13 @@ export default class Bundle extends Command {
 
     try {
       if (flags.update) {
-        await this.updateExistingBundle(args.file, flags.name, flags['package-json'], flags['source-encoding'], flags.bundle);
+        await this.updateExistingBundle(args.file, flags.name, flags['package-json'], flags['source-encoding'], flags.bundle, flags['identifier-system']);
       } else if (flags['package-json']) {
-        await this.bundleLensesFromPackageJson(args.file, flags['source-encoding'], flags.bundle);
+        await this.bundleLensesFromPackageJson(args.file, flags['source-encoding'], flags.bundle, flags['identifier-system']);
       } else if (flags.default) {
-        await this.bundleLensesDefaultInformaton(args.file, flags.name!, flags['source-encoding'], flags.bundle);
+        await this.bundleLensesDefaultInformaton(args.file, flags.name!, flags['source-encoding'], flags.bundle, flags['identifier-system']);
       } else {
-        await this.bundleLensesInteractive(args.file, flags.name!, flags['source-encoding'], flags.bundle);
+        await this.bundleLensesInteractive(args.file, flags.name!, flags['source-encoding'], flags.bundle, flags['identifier-system']);
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -69,7 +71,7 @@ export default class Bundle extends Command {
     }
   }
 
-  private bundleLensesDefaultInformaton(file: string, name: string, sourceEncoding?: string, bundleFile?: string): void {
+  private bundleLensesDefaultInformaton(file: string, name: string, sourceEncoding?: string, bundleFile?: string, identifierSystem?: string): void {
     changeSpinnerText('Bundling lenses with default information', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
     const fileData = getFileData(file, sourceEncoding);
@@ -79,10 +81,11 @@ export default class Bundle extends Command {
     stopAndPersistSpinner('File data converted to base64', spinner);
     changeSpinnerText(`Making bundle with name: ${name}`, spinner);
     const bundle = LensFhirResource.defaultValues(name, base64FileData);
+    LensFhirResource.applyFhirIdentifier(bundle, name, identifierSystem);
     stopAndPersistSpinner('Bundle created', spinner);
     changeSpinnerText('Writing bundle to file...', spinner)
     const targetFile = bundleFile || this.findBundleFile(file, name);
-    this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile);
+    this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile, identifierSystem);
     const actualFileName = targetFile || `${bundle.name}.json`;
     stopAndPersistSpinner(`Bundle written to file: ${actualFileName}`, spinner);
     spinner.stopAndPersist({
@@ -91,7 +94,7 @@ export default class Bundle extends Command {
     });
   }
 
-  private bundleLensesFromPackageJson(file: string, sourceEncoding?: string, bundleFile?: string): void {
+  private bundleLensesFromPackageJson(file: string, sourceEncoding?: string, bundleFile?: string, identifierSystem?: string): void {
     changeSpinnerText('Reading package.json...', spinner);
     const packageJson = this.readPackageJson();
 
@@ -109,10 +112,11 @@ export default class Bundle extends Command {
     stopAndPersistSpinner('File data converted to base64', spinner);
     changeSpinnerText(`Making bundle with name: ${packageJson.name}`, spinner);
     const bundle = LensFhirResource.fromPackageJson(packageJson, base64FileData);
+    LensFhirResource.applyFhirIdentifier(bundle, packageJson.name, identifierSystem);
     stopAndPersistSpinner('Bundle created', spinner);
     changeSpinnerText('Writing bundle to file...', spinner);
     const targetFile = bundleFile || this.findBundleFile(file, packageJson.name);
-    this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile);
+    this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile, identifierSystem);
     const actualFileName = targetFile || `${bundle.name}.json`;
     stopAndPersistSpinner(`Bundle written to file: ${actualFileName}`, spinner);
     spinner.stopAndPersist({
@@ -121,7 +125,7 @@ export default class Bundle extends Command {
     });
   }
 
-  private bundleLensesInteractive(file: string, name: string, sourceEncoding?: string, bundleFile?: string): void {
+  private bundleLensesInteractive(file: string, name: string, sourceEncoding?: string, bundleFile?: string, identifierSystem?: string): void {
     changeSpinnerText('Bundling lenses', spinner);
     changeSpinnerText('Retrieving file data...', spinner);
     const fileData = getFileData(file, sourceEncoding);
@@ -155,10 +159,11 @@ export default class Bundle extends Command {
     ]).then(answers => {
       changeSpinnerText(`Making bundle with name: ${answers.name}`, spinner);
       const bundle = LensFhirResource.interactiveValues(answers.name, answers.description, answers.purpose, answers.usage, base64FileData);
+      LensFhirResource.applyFhirIdentifier(bundle, answers.name, identifierSystem);
       stopAndPersistSpinner('Bundle created', spinner);
       changeSpinnerText('Writing bundle to file...', spinner)
       const targetFile = bundleFile || this.findBundleFile(file, answers.name);
-      this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile);
+      this.writeBundleToFileWithTarget(bundle, base64FileData, targetFile, identifierSystem);
       const actualFileName = targetFile || `${bundle.name}.json`;
       stopAndPersistSpinner(`Bundle written to file: ${actualFileName}`, spinner);
       spinner.stopAndPersist({
@@ -229,7 +234,7 @@ export default class Bundle extends Command {
     }
   }
 
-  private updateExistingBundle(file: string, name?: string, usePackageJson?: boolean, sourceEncoding?: string, bundleFile?: string): void {
+  private updateExistingBundle(file: string, name?: string, usePackageJson?: boolean, sourceEncoding?: string, bundleFile?: string, identifierSystem?: string): void {
     // Determine the bundle file to update
     let bundleFileName: string | undefined;
 
@@ -308,6 +313,7 @@ export default class Bundle extends Command {
       }
 
       existingBundle.content[0].data = base64FileData;
+      LensFhirResource.applyFhirIdentifier(existingBundle, name, identifierSystem);
 
       const updatedBundleJson = JSON.stringify(existingBundle, null, 2);
       fs.writeFileSync(bundleFileName, updatedBundleJson);
@@ -326,7 +332,7 @@ export default class Bundle extends Command {
   /**
    * Write bundle to specified file or use default naming
    */
-  private writeBundleToFileWithTarget(bundle: LensFhirResource, base64Content: string, targetFile?: string): void {
+  private writeBundleToFileWithTarget(bundle: LensFhirResource, base64Content: string, targetFile?: string, identifierSystem?: string): void {
     const bundleFileName = targetFile || `${bundle.name}.json`;
 
     // Check if file already exists
@@ -351,6 +357,7 @@ export default class Bundle extends Command {
 
         // Update the base64 content
         existingBundle.content[0].data = base64Content;
+        LensFhirResource.applyFhirIdentifier(existingBundle, bundle.name, identifierSystem);
 
         // Write updated bundle
         const updatedBundleJson = JSON.stringify(existingBundle, null, 2);

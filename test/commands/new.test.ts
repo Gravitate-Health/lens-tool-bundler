@@ -42,6 +42,7 @@ describe('new command', () => {
         const lensData = JSON.parse(jsonContent);
         expect(lensData.resourceType).to.equal('Library');
         expect(lensData.name).to.equal(lensName);
+        expect(lensData.identifier[0].value).to.equal('testlens');
         expect(lensData.content[0].data).to.be.a('string').and.not.empty;
 
         // Verify base64 content is the same as JS file
@@ -101,35 +102,31 @@ describe('new command', () => {
       }
     });
 
-    it('should normalize lens name to kebab-case for file names', async () => {
+    it('should keep human-readable name and normalize FHIR identifier', async () => {
       const lensName = 'My Test Lens';
       const originalCwd = process.cwd();
 
       try {
         process.chdir(context.testDir);
 
-        // Pass lens name without spaces since runCommand doesn't handle quoted arguments
-        // The test title is misleading - it should test that the FHIR ID is kebab-cased
-        // even when the lens name doesn't have special characters
-        const simpleName = 'MyTestLens';
-        
-        const {error} = await runCommand(['new', simpleName, '--default']);
+        const {error} = await runCommand(['new', lensName, '--default']);
 
         // Command should succeed
         expect(error).to.not.exist;
 
-        // Files should be created with original name (not normalized in simple mode)
-        const jsFile = path.join(context.testDir, `${simpleName}.js`);
-        const jsonFile = path.join(context.testDir, `${simpleName}.json`);
+        // Files should be created with original name (including spaces)
+        const jsFile = path.join(context.testDir, `${lensName}.js`);
+        const jsonFile = path.join(context.testDir, `${lensName}.json`);
 
         expect(fs.existsSync(jsFile)).to.be.true;
         expect(fs.existsSync(jsonFile)).to.be.true;
 
-        // The FHIR resource should have kebab-cased ID
+        // The FHIR resource should keep human-readable name and normalized identifier
         const jsonContent = fs.readFileSync(jsonFile, 'utf8');
         const lensData = JSON.parse(jsonContent);
-        expect(lensData.id).to.equal('mytestlens'); // lowercased, no hyphens since no spaces
-        expect(lensData.name).to.equal(simpleName);
+        expect(lensData.id).to.equal('my-test-lens');
+        expect(lensData.name).to.equal(lensName);
+        expect(lensData.identifier[0].value).to.equal('my-test-lens');
       } finally {
         process.chdir(originalCwd);
       }

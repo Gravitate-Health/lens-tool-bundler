@@ -6,6 +6,7 @@ import ora from 'ora'
 import * as dirController from '../controllers/dir-controller.js'
 import {getFileData, toBase64Utf8} from '../controllers/file-controller.js'
 import {changeSpinnerText, stopAndPersistSpinner} from '../controllers/spinner-controller.js'
+import {LensFhirResource} from '../models/lens-fhir-resource.js'
 import {uploadLenses} from '../controllers/upload-controller.js'
 
 const spinner = ora();
@@ -36,6 +37,7 @@ export default class BatchUpload extends Command {
     '<%= config.bin %> <%= command.id %> ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir',
     '<%= config.bin %> <%= command.id %> ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --skip-valid',
     '<%= config.bin %> <%= command.id %> ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --exclude "test.*"',
+    '<%= config.bin %> <%= command.id %> ./lenses -d https://fosps.gravitatehealth.eu/epi/api/fhir --identifier-system https://example.org/fhir/lens-ids',
   ]
   static flags = {
     domain: Flags.string({
@@ -63,6 +65,7 @@ export default class BatchUpload extends Command {
       description: 'skip lenses that already have valid base64 content',
       required: false,
     }),
+    'identifier-system': Flags.string({description: 'FHIR identifier system to set on processed resources', required: false}),
     'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
   }
 
@@ -76,6 +79,7 @@ export default class BatchUpload extends Command {
     const force = flags.force || false;
     const {domain} = flags;
     const sourceEncoding = flags['source-encoding'];
+    const identifierSystem = flags['identifier-system'];
 
     spinner.start('Starting batch upload process...');
 
@@ -184,7 +188,10 @@ export default class BatchUpload extends Command {
 
           lensContent[0].contentType = 'application/javascript';
           lensContent[0].data = base64Content;
-          lens.lens.content = lensContent;          // Update date unless skip-date flag is set
+          lens.lens.content = lensContent;
+          LensFhirResource.applyFhirIdentifier(lens.lens, lens.name, identifierSystem);
+
+          // Update date unless skip-date flag is set
           if (!skipDate) {
             lens.lens.date = new Date().toISOString();
           }
@@ -192,7 +199,7 @@ export default class BatchUpload extends Command {
           // Upload the lens
           changeSpinnerText(`Uploading ${fileName}...`, spinner);
           const lensJson = JSON.stringify(lens.lens, null, 2);
-          const response = await uploadLenses(lensJson, domain);
+          const response = await uploadLenses(lensJson, domain, identifierSystem);
 
           if (response.ok) {
             result.uploaded++;

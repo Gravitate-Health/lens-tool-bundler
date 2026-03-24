@@ -6,6 +6,7 @@ import ora from 'ora'
 import * as dirController from '../controllers/dir-controller.js'
 import {getFileData, toBase64Utf8} from '../controllers/file-controller.js'
 import {changeSpinnerText, stopAndPersistSpinner} from '../controllers/spinner-controller.js'
+import {LensFhirResource} from '../models/lens-fhir-resource.js'
 
 const spinner = ora();
 
@@ -37,6 +38,7 @@ export default class BatchBundle extends Command {
     '<%= config.bin %> <%= command.id %> ./lenses --skip-date',
     String.raw`<%= config.bin %> <%= command.id %> ./lenses --exclude "test.*" --exclude ".*\.draft\.json$"`,
     '<%= config.bin %> <%= command.id %> ./lenses --exclude "node_modules"',
+    '<%= config.bin %> <%= command.id %> ./lenses --identifier-system https://example.org/fhir/lens-ids',
   ]
   static flags = {
     exclude: Flags.string({
@@ -60,6 +62,7 @@ export default class BatchBundle extends Command {
       description: 'skip lenses that already have valid base64 content',
       required: false,
     }),
+    'identifier-system': Flags.string({description: 'FHIR identifier system to set on processed resources', required: false}),
     'source-encoding': Flags.string({description: 'source file encoding (auto-detected if omitted)', required: false}),
   }
 
@@ -72,6 +75,7 @@ export default class BatchBundle extends Command {
     const excludePatterns = flags.exclude || [];
     const force = flags.force || false;
     const sourceEncoding = flags['source-encoding'];
+    const identifierSystem = flags['identifier-system'];
 
     spinner.start('Starting batch bundle process...');
 
@@ -184,6 +188,7 @@ export default class BatchBundle extends Command {
           lensContent[0].contentType = 'application/javascript';
           lensContent[0].data = base64Content;
           lens.lens.content = lensContent;
+          LensFhirResource.applyFhirIdentifier(lens.lens, lens.name, identifierSystem);
 
           // Update date unless skip-date flag is set
           if (!skipDate) {

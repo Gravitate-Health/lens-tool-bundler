@@ -23,6 +23,7 @@ export default class New extends Command {
   static examples = [
     '<%= config.bin %> <%= command.id %> MyLens',
     '<%= config.bin %> <%= command.id %> MyLens -d',
+    '<%= config.bin %> <%= command.id %> "My Lens" -d --identifier-system https://example.org/fhir/lens-ids',
     '<%= config.bin %> <%= command.id %> MyLens --template',
     '<%= config.bin %> <%= command.id %> MyLens --template --fork',
   ]
@@ -30,6 +31,7 @@ export default class New extends Command {
     default: Flags.boolean({char: 'd', description: 'use default values for the bundle', required: false}),
     force: Flags.boolean({char: 'f', description: 'overwrite existing files if they exist', required: false}),
     fork: Flags.boolean({description: 'fork the template repository using GitHub CLI (requires gh CLI)', required: false}),
+    'identifier-system': Flags.string({description: 'FHIR identifier system to set on the resource', required: false}),
     template: Flags.boolean({char: 't', description: 'clone the full lens-template repository with all features', required: false}),
   }
 
@@ -40,8 +42,8 @@ export default class New extends Command {
 
     try {
       await (flags.template
-        ? this.createFromTemplate(args.name, flags.default, flags.force, flags.fork)
-        : this.createSimpleLens(args.name, flags.default, flags.force));
+        ? this.createFromTemplate(args.name, flags.default, flags.force, flags.fork, flags['identifier-system'])
+        : this.createSimpleLens(args.name, flags.default, flags.force, flags['identifier-system']));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       spinner.fail(`Error: ${message}`);
@@ -71,7 +73,7 @@ export default class New extends Command {
     }
   }
 
-  private async createFromTemplate(name: string, useDefaults: boolean, force: boolean, useFork: boolean): Promise<void> {
+  private async createFromTemplate(name: string, useDefaults: boolean, force: boolean, useFork: boolean, identifierSystem?: string): Promise<void> {
     const targetDirName = name.toLowerCase().replaceAll(/\s+/g, '-');
 
     // Check if current directory is empty - if so, use it instead of creating subdirectory
@@ -104,7 +106,7 @@ export default class New extends Command {
     await this.renameLensFiles(targetDir, name);
 
     // Synchronize metadata from package.json to Library
-    await this.syncMetadata(targetDir, name);
+    await this.syncMetadata(targetDir, name, identifierSystem);
 
     // Update README files
     await this.updateReadmeFiles(targetDir);
@@ -113,7 +115,7 @@ export default class New extends Command {
     this.displaySummary(displayDir, name);
   }
 
-  private async createLensInteractive(name: string, lensTemplate: string): Promise<void> {
+  private async createLensInteractive(name: string, lensTemplate: string, identifierSystem?: string): Promise<void> {
     changeSpinnerText('Creating new lens', spinner);
 
     // Create JavaScript file first
@@ -165,6 +167,7 @@ export default class New extends Command {
       answers.usage,
       base64FileData,
     );
+    LensFhirResource.applyFhirIdentifier(bundle, answers.name, identifierSystem);
 
     const bundleJson = JSON.stringify(bundle, null, 2);
     const bundleFileName = `${answers.name}.json`;
@@ -182,7 +185,7 @@ export default class New extends Command {
     }
   }
 
-  private createLensWithDefaults(name: string, lensTemplate: string): void {
+  private createLensWithDefaults(name: string, lensTemplate: string, identifierSystem?: string): void {
     changeSpinnerText('Creating new lens with default values', spinner);
 
     // Create JavaScript file
@@ -204,6 +207,7 @@ export default class New extends Command {
     // Create FHIR bundle
     changeSpinnerText(`Creating FHIR bundle: ${name}`, spinner);
     const bundle = LensFhirResource.defaultValues(name, base64FileData);
+    LensFhirResource.applyFhirIdentifier(bundle, name, identifierSystem);
     const bundleJson = JSON.stringify(bundle, null, 2);
     const bundleFileName = `${name}.json`;
 
@@ -221,7 +225,7 @@ export default class New extends Command {
     });
   }
 
-  private async createSimpleLens(name: string, useDefaults: boolean, force: boolean): Promise<void> {
+  private async createSimpleLens(name: string, useDefaults: boolean, force: boolean, identifierSystem?: string): Promise<void> {
     // Check if files already exist (unless force flag is set)
     if (!force) {
       const jsFileName = `${name}.js`;
@@ -250,9 +254,9 @@ export default class New extends Command {
     }
 
     if (useDefaults) {
-      this.createLensWithDefaults(name, lensTemplate);
+      this.createLensWithDefaults(name, lensTemplate, identifierSystem);
     } else {
-      await this.createLensInteractive(name, lensTemplate);
+      await this.createLensInteractive(name, lensTemplate, identifierSystem);
     }
   }
 
@@ -388,7 +392,7 @@ export default class New extends Command {
     }
   }
 
-  private async syncMetadata(targetDir: string, lensName: string): Promise<void> {
+  private async syncMetadata(targetDir: string, lensName: string, identifierSystem?: string): Promise<void> {
     const packageJsonPath = path.join(targetDir, 'package.json');
     const jsFileName = `${lensName.toLowerCase().replaceAll(/\s+/g, '-')}.js`;
     const jsFilePath = path.join(targetDir, jsFileName);
@@ -409,6 +413,7 @@ export default class New extends Command {
 
     // Create FHIR Library from package.json
     const bundle = LensFhirResource.fromPackageJson(packageJson, base64Content);
+    LensFhirResource.applyFhirIdentifier(bundle, packageJson.name || lensName, identifierSystem);
 
     // Write bundle
     const bundleFileName = `${lensName.toLowerCase().replaceAll(/\s+/g, '-')}.json`;

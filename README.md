@@ -163,6 +163,31 @@ lens-tool-bundler bundle mylens.js -n MyLens --source-encoding latin1
 lens-tool-bundler check mylens.js --source-encoding windows-1252
 ```
 
+# FHIR Identifier Rules
+
+For all commands that create, update, check, or upload FHIR Library resources (`new`, `bundle`, `batch-bundle`, `upload`, `batch-upload`, `check`, `batch-check`):
+
+- `name` remains human-readable and may contain spaces.
+- `identifier[0].value` is required and normalized to a FHIR-safe form (lowercase kebab-case, no spaces).
+- `id` is aligned with the normalized identifier value.
+- Default identifier system is `http://gravitate-health.lst.tfo.upm.es`.
+- You can override the system in creation/update/upload commands with `--identifier-system`.
+
+Example:
+
+- Input `name`: `Human Readable Lens`
+- Stored identifier: `human-readable-lens`
+
+Examples:
+
+```bash
+lens-tool-bundler new "My Lens" --default --identifier-system https://example.org/fhir/lens-ids
+lens-tool-bundler bundle mylens.js -n "My Lens" --identifier-system https://example.org/fhir/lens-ids
+lens-tool-bundler batch-bundle ./lenses --identifier-system https://example.org/fhir/lens-ids
+lens-tool-bundler upload mylens.json -d https://your-fhir-server.com/api/fhir --identifier-system https://example.org/fhir/lens-ids
+lens-tool-bundler batch-upload ./lenses -d https://your-fhir-server.com/api/fhir --identifier-system https://example.org/fhir/lens-ids
+```
+
 # File Exclusions
 
 Batch commands (`batch-bundle`, `batch-check`, `batch-test`, `batch-upload`) automatically exclude certain files and directories to optimize processing:

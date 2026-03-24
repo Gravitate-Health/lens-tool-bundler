@@ -29,6 +29,14 @@ describe('LensFhirResource', () => {
 
       expect(lens.name).to.equal('My Test Lens')
       expect(lens.id).to.equal('my-test-lens')
+      expect(lens.identifier[0].value).to.equal('my-test-lens')
+    })
+
+    it('should keep name human-readable while normalizing FHIR identifier', () => {
+      const lens = LensFhirResource.defaultValues('Lens for Diabetes Care', sampleBase64)
+
+      expect(lens.name).to.equal('Lens for Diabetes Care')
+      expect(lens.identifier[0].value).to.equal('lens-for-diabetes-care')
     })
 
     it('should set date to ISO 8601 format', () => {
@@ -50,6 +58,7 @@ describe('LensFhirResource', () => {
 
       expect(lens.resourceType).to.equal('Library')
       expect(lens.name).to.equal('interactive-lens')
+      expect(lens.identifier[0].value).to.equal('interactive-lens')
       expect(lens.description).to.equal('Test description')
       expect(lens.purpose).to.equal('Test purpose')
       expect(lens.usage).to.equal('Test usage')

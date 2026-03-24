@@ -197,6 +197,33 @@ describe('check command', () => {
         process.chdir(originalCwd);
       }
     });
+
+    it('should fail when bundle identifier is not normalized', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'identifier.js');
+        const jsonFile = path.join(context.testDir, 'identifier.json');
+
+        const jsContent = 'function enhance(epi) { return epi; }';
+        fs.writeFileSync(jsFile, jsContent);
+
+        createMockLensFile(jsonFile, 'Identifier Lens', true);
+        const lensData = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        lensData.content[0].data = Buffer.from(jsContent).toString('base64');
+        lensData.identifier[0].value = 'Identifier Lens';
+        fs.writeFileSync(jsonFile, JSON.stringify(lensData, null, 2));
+
+        const {error} = await runCommand(['check', jsFile]);
+
+        expect(error).to.exist;
+        expect((error as any)?.oclif?.exit).to.equal(1);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
   });
 
   describe('edge cases', () => {

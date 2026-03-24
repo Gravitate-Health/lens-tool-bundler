@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import * as dirController from '../controllers/dir-controller.js'
 import {getFileData, toBase64Utf8} from '../controllers/file-controller.js'
+import {LensFhirResource} from '../models/lens-fhir-resource.js'
 
 interface CheckResult {
   bundleFile: string;
@@ -182,6 +183,16 @@ export default class BatchCheck extends Command {
         };
       }
 
+      const identifierError = this.getIdentifierValidationError(bundle);
+      if (identifierError) {
+        return {
+          bundleFile: jsonFile,
+          error: identifierError,
+          jsFile,
+          passed: false,
+        };
+      }
+
       const bundleBase64 = bundle.content[0].data;
 
       // Compare content
@@ -208,6 +219,26 @@ export default class BatchCheck extends Command {
         passed: false,
       };
     }
+  }
+
+  private getIdentifierValidationError(bundle: any): string | null {
+    const identifierValue = bundle?.identifier?.[0]?.value;
+    if (!identifierValue || typeof identifierValue !== 'string') {
+      return 'Bundle has no FHIR identifier value';
+    }
+
+    const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(identifierValue);
+    if (identifierValue !== normalizedIdentifier) {
+      return `Bundle identifier is not normalized (expected: "${normalizedIdentifier}")`;
+    }
+
+    const sourceName = bundle?.name || bundle?.id || 'lens';
+    const expectedFromName = LensFhirResource.normalizeFhirIdentifier(sourceName);
+    if (identifierValue !== expectedFromName) {
+      return `Bundle identifier does not match normalized name (expected: "${expectedFromName}")`;
+    }
+
+    return null;
   }
 
   private outputJson(results: CheckResult[]): void {

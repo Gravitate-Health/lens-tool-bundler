@@ -9,6 +9,8 @@ import {Telecom} from './telecom.js';
 import {Type} from './type.js'; // Add this import statement
 
 export class LensFhirResource {
+  static readonly DEFAULT_IDENTIFIER_SYSTEM = 'http://gravitate-health.lst.tfo.upm.es';
+
   contact: Contact[];
   content: Content[];
   copyright: string;
@@ -35,7 +37,7 @@ export class LensFhirResource {
   // eslint-disable-next-line max-params
   private constructor(resourceType: string, meta: Meta, extension: Extension[], url: string, identifier: Identifier[], version: string, name: string, title: string, status: string, experimental: boolean, type: Type, publisher: string, contact: Contact[], description: string, jurisdiction: Jurisdiction[], purpose: string, usage: string, copyright: string, parameter: Parameter[], content: Content[]) {
     this.resourceType = resourceType;
-    this.id = name.toLowerCase().replaceAll(/\s+/g, '-');
+    this.id = LensFhirResource.normalizeFhirIdentifier(name);
     this.date = new Date().toISOString();
     this.meta = meta;
     this.extension = extension;
@@ -56,16 +58,60 @@ export class LensFhirResource {
     this.copyright = copyright;
     this.parameter = parameter;
     this.content = content;
+
+    LensFhirResource.applyFhirIdentifier(this);
   }
   // ...
 
+  static normalizeFhirIdentifier(input: string): string {
+    const normalized = input
+      .trim()
+      .toLowerCase()
+      .replaceAll(/[^a-z0-9\s-_]/g, '-')
+      .replaceAll(/[\s_]+/g, '-')
+      .replaceAll(/-+/g, '-')
+      .replaceAll(/^-+|-+$/g, '');
+
+    return normalized || 'lens';
+  }
+
+  static applyFhirIdentifier(resource: {
+    id?: string;
+    identifier?: Array<{system?: string; value?: string}>;
+    name?: string;
+  }, fallbackName?: string, identifierSystem?: string): void {
+    const sourceName = resource.name || fallbackName || resource.id || 'lens';
+    const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(sourceName);
+    const normalizedSystem = (identifierSystem || LensFhirResource.DEFAULT_IDENTIFIER_SYSTEM).trim()
+      || LensFhirResource.DEFAULT_IDENTIFIER_SYSTEM;
+
+    resource.id = normalizedIdentifier;
+
+    if (!Array.isArray(resource.identifier)) {
+      resource.identifier = [];
+    }
+
+    if (resource.identifier.length === 0) {
+      resource.identifier.push({
+        system: normalizedSystem,
+        value: normalizedIdentifier,
+      });
+      return;
+    }
+
+    resource.identifier[0].system = normalizedSystem;
+    resource.identifier[0].value = normalizedIdentifier;
+  }
+
   static defaultValues(name: string, lens: string): LensFhirResource {
+    const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(name);
+
     return new LensFhirResource(
       'Library',
       new Meta(),
       [Extension.defaultValues()],
       'http://hl7.eu/fhir/ig/gravitate-health/Library/mock-lib',
-      [new Identifier('http://gravitate-health.lst.tfo.upm.es', name)],
+      [new Identifier(LensFhirResource.DEFAULT_IDENTIFIER_SYSTEM, normalizedIdentifier)],
       '0.0.1',
       name,
       name,
@@ -119,13 +165,14 @@ export class LensFhirResource {
     const purpose = packageJson.purpose || 'Purpose to be specified';
     const usage = packageJson.usage || 'Usage to be specified';
     const copyright = packageJson.copyright || (license ? `Licensed under ${license}` : '© 2026');
+    const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(name);
 
     return new LensFhirResource(
       'Library',
       new Meta(),
       [Extension.defaultValues()],
       'http://hl7.eu/fhir/ig/gravitate-health/Library/mock-lib',
-      [new Identifier('http://gravitate-health.lst.tfo.upm.es', name)],
+      [new Identifier(LensFhirResource.DEFAULT_IDENTIFIER_SYSTEM, normalizedIdentifier)],
       version,
       name,
       name,
@@ -146,12 +193,14 @@ export class LensFhirResource {
 
   // eslint-disable-next-line max-params
   static interactiveValues(name: string, description: string, purpose: string, usage: string, lens: string): LensFhirResource {
+    const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(name);
+
     return new LensFhirResource(
       'Library',
       new Meta(),
       [Extension.defaultValues()],
       'http://hl7.eu/fhir/ig/gravitate-health/Library/mock-lib',
-      [new Identifier('http://gravitate-health.lst.tfo.upm.es', name)],
+      [new Identifier(LensFhirResource.DEFAULT_IDENTIFIER_SYSTEM, normalizedIdentifier)],
       '0.0.1',
       name,
       name,

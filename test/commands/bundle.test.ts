@@ -46,7 +46,31 @@ describe('bundle command', () => {
         const jsonContent = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
         expect(jsonContent.resourceType).to.equal('Library');
         expect(jsonContent.name).to.equal('TestLens');
+        expect(jsonContent.identifier[0].value).to.equal('testlens');
         expect(jsonContent.status).to.equal('draft');
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
+
+    it('should keep human-readable name and normalize identifier when name has spaces', async () => {
+      const originalCwd = process.cwd();
+
+      try {
+        process.chdir(context.testDir);
+
+        const jsFile = path.join(context.testDir, 'human-readable.js');
+        createMockEnhanceFile(jsFile);
+
+        await runCommand(['bundle', jsFile, '--name', 'Human Readable Lens', '--default']);
+
+        const jsonFile = path.join(context.testDir, 'Human Readable Lens.json');
+        expect(fs.existsSync(jsonFile)).to.be.true;
+
+        const jsonContent = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        expect(jsonContent.name).to.equal('Human Readable Lens');
+        expect(jsonContent.id).to.equal('human-readable-lens');
+        expect(jsonContent.identifier[0].value).to.equal('human-readable-lens');
       } finally {
         process.chdir(originalCwd);
       }

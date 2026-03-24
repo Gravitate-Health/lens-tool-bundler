@@ -14,10 +14,12 @@ export default class Upload extends Command {
   static override description = 'upload file (json format) to a valid FHIR server.'
   static override examples = [
     '<%= config.bin %> <%= command.id %>',
+    '<%= config.bin %> <%= command.id %> my-lens.json -d https://example.org/fhir --identifier-system https://example.org/fhir/lens-ids',
   ]
   static override flags = {
     // flag with a value (-n, --name=VALUE)
     domain: Flags.string({char: 'd', description: 'domain where FHIR server is hosted (with http/https)', required: true}),
+    'identifier-system': Flags.string({description: 'FHIR identifier system to set before upload', required: false}),
   }
 
   public async run(): Promise<void> {
@@ -30,7 +32,7 @@ export default class Upload extends Command {
       spinnerController.stopAndPersistSpinner('File data retrieved', spinner);
       spinnerController.changeSpinnerText('Uploading lenses...', spinner);
 
-      const response = await uploadLenses(fileData, flags.domain);
+      const response = await uploadLenses(fileData, flags.domain, flags['identifier-system']);
 
       if (response.ok) {
         spinner.stopAndPersist({

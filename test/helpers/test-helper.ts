@@ -50,13 +50,27 @@ module.exports = ${functionName};
  * @param includeBase64 - Whether to include base64 content
  */
 export function createMockLensFile(filePath: string, name: string, includeBase64: boolean = true): void {
+  const normalizedIdentifier = name
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9\s-_]/g, '-')
+    .replaceAll(/[\s_]+/g, '-')
+    .replaceAll(/-+/g, '-')
+    .replaceAll(/^-+|-+$/g, '') || 'lens';
+
   const base64Content = includeBase64 
     ? Buffer.from('function enhance(epi) { return epi; }').toString('base64')
     : '';
 
   const lensData = {
     resourceType: 'Library',
-    id: name.toLowerCase().replaceAll(/\s+/g, '-'),
+    id: normalizedIdentifier,
+    identifier: [
+      {
+        system: 'http://gravitate-health.lst.tfo.upm.es',
+        value: normalizedIdentifier,
+      }
+    ],
     name: name,
     status: 'draft',
     url: `http://hl7.eu/fhir/ig/gravitate-health/Library/${name}`,

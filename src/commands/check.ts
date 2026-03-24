@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 
 import {getFileData, toBase64Utf8} from '../controllers/file-controller.js';
+import {LensFhirResource} from '../models/lens-fhir-resource.js';
 
 export default class Check extends Command {
   static args = {
@@ -150,6 +151,15 @@ export default class Check extends Command {
       return {message, success: false};
     }
 
+    const identifierValidationError = this.getIdentifierValidationError(bundle);
+    if (identifierValidationError) {
+      if (!quiet) {
+        this.log(`❌ ${identifierValidationError}`);
+      }
+
+      return {message: identifierValidationError, success: false};
+    }
+
     const bundleBase64 = bundle.content[0].data;
 
     if (!bundleBase64) {
@@ -186,5 +196,25 @@ export default class Check extends Command {
     }
 
     return {message, success: false};
+  }
+
+  private getIdentifierValidationError(bundle: any): string | null {
+    const identifierValue = bundle?.identifier?.[0]?.value;
+    if (!identifierValue || typeof identifierValue !== 'string') {
+      return 'Bundle has no FHIR identifier value';
+    }
+
+    const normalizedIdentifier = LensFhirResource.normalizeFhirIdentifier(identifierValue);
+    if (identifierValue !== normalizedIdentifier) {
+      return `Bundle identifier is not normalized (expected: "${normalizedIdentifier}")`;
+    }
+
+    const sourceName = bundle?.name || bundle?.id || 'lens';
+    const expectedFromName = LensFhirResource.normalizeFhirIdentifier(sourceName);
+    if (identifierValue !== expectedFromName) {
+      return `Bundle identifier does not match normalized name (expected: "${expectedFromName}")`;
+    }
+
+    return null;
   }
 }
